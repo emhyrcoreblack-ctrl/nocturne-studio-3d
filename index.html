@@ -114,4 +114,347 @@ try {
 
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.set
+  renderer.setClearColor(0x151515, 1);
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  camera.position.set(3, 2.5, 4);
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.target.set(0, 1, 0);
+  controls.minDistance = 0.5;
+  controls.maxDistance = 15;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x544333, 2.2));
+
+  const light = new THREE.DirectionalLight(0xffe2b8, 3);
+  light.position.set(4, 7, 5);
+  scene.add(light);
+
+  const fill = new THREE.DirectionalLight(0xb9cfff, 1.2);
+  fill.position.set(-4, 3, -3);
+  scene.add(fill);
+
+  const grid = new THREE.GridHelper(8, 32, 0x927451, 0x37332d);
+  scene.add(grid);
+
+  let group = new THREE.Group();
+  scene.add(group);
+
+  let color = "#c99b62";
+  let doorSet = [];
+  let drawerSet = [];
+  let rows = [];
+  let doorsOpen = false;
+  let drawersOpen = false;
+  let exploded = false;
+
+  function box(parent, name, x, y, z, w, h, d, material) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      material
+    );
+
+    mesh.name = name;
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+
+    return mesh;
+  }
+
+  function build() {
+    scene.remove(group);
+
+    group = new THREE.Group();
+    scene.add(group);
+
+    doorSet = [];
+    drawerSet = [];
+    doorsOpen = false;
+    drawersOpen = false;
+    exploded = false;
+
+    const w = Math.max(300, Number(document.querySelector("#w").value) || 1200) / 1000;
+    const h = Math.max(300, Number(document.querySelector("#h").value) || 2000) / 1000;
+    const d = Math.max(200, Number(document.querySelector("#d").value) || 550) / 1000;
+    const t = Math.min(
+      Math.max(12, Number(document.querySelector("#t").value) || 18) / 1000,
+      w / 5,
+      h / 5,
+      d / 5
+    );
+
+    const wood = new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.42
+    });
+
+    const dark = new THREE.MeshStandardMaterial({
+      color: 0x302e29,
+      roughness: 0.8
+    });
+
+    const metal = new THREE.MeshStandardMaterial({
+      color: 0xb7a078,
+      metalness: 0.7,
+      roughness: 0.3
+    });
+
+    const type = document.querySelector("#type").value;
+
+    if (type === "table" || type === "desk") {
+      box(group, "Tablero", 0, h - t / 2, 0, w, t, d, wood);
+
+      for (const x of [-w / 2 + t * 1.5, w / 2 - t * 1.5]) {
+        for (const z of [-d / 2 + t * 1.5, d / 2 - t * 1.5]) {
+          box(group, "Pata", x, (h - t) / 2, z, t, h - t, t, wood);
+        }
+      }
+
+      if (type === "desk") {
+        box(group, "Faldón", 0, h * 0.78, -d * 0.25, w * 0.7, h * 0.12, t, wood);
+      }
+    } else {
+      box(group, "Costado izquierdo", -w / 2 + t / 2, h / 2, 0, t, h, d, wood);
+      box(group, "Costado derecho", w / 2 - t / 2, h / 2, 0, t, h, d, wood);
+      box(group, "Base", 0, t / 2, 0, w - 2 * t, t, d, wood);
+      box(group, "Techo", 0, h - t / 2, 0, w - 2 * t, t, d, wood);
+      box(group, "Fondo", 0, h / 2, -d / 2 + t / 2, w - 2 * t, h - 2 * t, t, dark);
+
+      if (type === "cabinet") {
+        const glass = new THREE.MeshStandardMaterial({
+          color: 0x9bc4ce,
+          transparent: true,
+          opacity: 0.32,
+          roughness: 0.15
+        });
+
+        box(group, "Estante superior", 0, h * 0.65, 0, w - 2 * t, t, d - t, wood);
+        box(group, "Vidrio", 0, h * 0.8, d / 2 - t, w - 2 * t, h * 0.25, t * 0.25, glass);
+      } else {
+        box(group, "Estante", 0, h * 0.52, 0, w - 2 * t, t, d - t, wood);
+      }
+
+      if (type === "wardrobe" || type === "cabinet") {
+        const doorWidth = (w - 2 * t) / 2;
+
+        for (let i = 0; i < 2; i++) {
+          const left = i === 0;
+          const pivot = new THREE.Group();
+
+          pivot.position.set(
+            left ? -w / 2 + t : w / 2 - t,
+            h / 2,
+            d / 2 + t * 0.35
+          );
+
+          group.add(pivot);
+
+          box(
+            pivot,
+            "Puerta",
+            left ? doorWidth / 2 : -doorWidth / 2,
+            0,
+            0,
+            doorWidth,
+            h - 2 * t,
+            t * 0.65,
+            wood
+          );
+
+          box(
+            pivot,
+            "Jalador",
+            left ? doorWidth * 0.82 : -doorWidth * 0.82,
+            0,
+            t * 0.55,
+            0.025,
+            0.13,
+            0.035,
+            metal
+          );
+
+          doorSet.push({
+            pivot,
+            direction: left ? -1 : 1
+          });
+        }
+      }
+
+      if (type === "dresser") {
+        const count = 3;
+        const drawerHeight = (h * 0.55) / count;
+
+        for (let i = 0; i < count; i++) {
+          const pivot = new THREE.Group();
+
+          pivot.position.set(
+            0,
+            h * 0.18 + i * (drawerHeight + 0.025),
+            d / 2 + t * 0.65
+          );
+
+          group.add(pivot);
+
+          box(
+            pivot,
+            "Frente de cajón",
+            0,
+            0,
+            0,
+            w - 2 * t,
+            drawerHeight,
+            t * 0.7,
+            wood
+          );
+
+          box(
+            pivot,
+            "Jalador",
+            0,
+            0,
+            t * 0.55,
+            0.12,
+            0.018,
+            0.025,
+            metal
+          );
+
+          drawerSet.push({
+            pivot,
+            originalZ: pivot.position.z
+          });
+        }
+      }
+    }
+
+    camera.position.set(
+      Math.max(w, h, d) * 1.5,
+      Math.max(w, h, d) * 1.1,
+      Math.max(w, h, d) * 2.0
+    );
+
+    controls.target.set(0, h * 0.48, 0);
+    controls.update();
+
+    document.querySelector("#pc").textContent = group.children.length;
+    document.querySelector("#dm").textContent =
+      `${Math.round(w * 1000)} × ${Math.round(h * 1000)} × ${Math.round(d * 1000)} mm`;
+
+    rows = [
+      ["Costados", Math.round(h * 1000), Math.round(d * 1000), 2],
+      ["Techo y base", Math.round((w - 2 * t) * 1000), Math.round(d * 1000), 2],
+      ["Fondo", Math.round((h - 2 * t) * 1000), Math.round(w * 1000), 1],
+      ["Estante", Math.round((w - 2 * t) * 1000), Math.round((d - t) * 1000), 1]
+    ];
+
+    document.querySelector("#list").innerHTML = "";
+    say("Visor 3D activo. Arrastra el mueble para girarlo.");
+  }
+
+  document.querySelector("#update").onclick = build;
+
+  document.querySelectorAll("[data-color]").forEach(button => {
+    button.onclick = () => {
+      color = button.dataset.color;
+      build();
+    };
+  });
+
+  document.querySelector("#doors").onclick = () => {
+    doorsOpen = !doorsOpen;
+
+    doorSet.forEach(item => {
+      item.pivot.rotation.y = doorsOpen ? item.direction * 1.05 : 0;
+    });
+  };
+
+  document.querySelector("#drawers").onclick = () => {
+    drawersOpen = !drawersOpen;
+
+    drawerSet.forEach(item => {
+      item.pivot.position.z = item.originalZ + (drawersOpen ? 0.22 : 0);
+    });
+  };
+
+  document.querySelector("#explode").onclick = () => {
+    exploded = !exploded;
+
+    group.children.forEach((item, index) => {
+      if (!item.userData.savedPosition) {
+        item.userData.savedPosition = item.position.clone();
+      }
+
+      const original = item.userData.savedPosition;
+
+      if (exploded) {
+        item.position.x = original.x + (index % 2 ? -0.12 : 0.12);
+        item.position.y = original.y + 0.06;
+      } else {
+        item.position.copy(original);
+      }
+    });
+  };
+
+  document.querySelector("#cut").onclick = () => {
+    document.querySelector("#list").innerHTML =
+      "<h3>PIEZA · LARGO · ANCHO · CANTIDAD</h3>" +
+      rows.map(row =>
+        `<div class="stats">${row[0]}: ${row[1]} × ${row[2]} mm · ${row[3]} ud.</div>`
+      ).join("");
+  };
+
+  document.querySelector("#csv").onclick = () => {
+    const content =
+      "Pieza,Largo_mm,Ancho_mm,Cantidad\n" +
+      rows.map(row => row.join(",")).join("\n");
+
+    const url = URL.createObjectURL(
+      new Blob([content], { type: "text/csv;charset=utf-8" })
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "despiece_preliminar.csv";
+    link.click();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+
+    if (!rect.width || !rect.height) return;
+
+    renderer.setSize(rect.width, rect.height, false);
+    camera.aspect = rect.width / rect.height;
+    camera.updateProjectionMatrix();
+  }
+
+  new ResizeObserver(resize).observe(canvas);
+  window.addEventListener("resize", resize);
+
+  resize();
+  build();
+
+  renderer.setAnimationLoop(() => {
+    controls.update();
+    renderer.render(scene, camera);
+  });
+
+} catch (error) {
+  console.error(error);
+
+  say(
+    "ERROR AL INICIAR EL VISOR 3D:\n" +
+    error.message +
+    "\nComprueba la conexión a internet y recarga la página."
+  );
+}
+</script>
+</body>
+  </html>
