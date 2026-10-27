@@ -1,1 +1,146 @@
-
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#171513">
+<title>NOCTURNE STUDIO 3D — CAD Workbench</title>
+<style>
+:root{--bg:#171614;--panel:#22201d;--gold:#d2ad73;--line:#59472e;--text:#f4efe6;--muted:#b6aa98;--danger:#ff9d91}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+header{height:auto;min-height:76px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);background:#1d1a17}
+.brand{font-weight:800;letter-spacing:.16em;color:var(--gold);font-size:17px}.sub{font-size:10px;letter-spacing:.16em;color:var(--muted);margin-top:3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}button,.filelabel{font:inherit;cursor:pointer;border:1px solid var(--line);background:#2a2723;color:var(--text);padding:10px 13px;border-radius:9px;min-height:42px}button.primary,.filelabel.primary{background:var(--gold);color:#211a11;border-color:#e5c795;font-weight:650}button:active,.filelabel:active{transform:scale(.98)}button:disabled{opacity:.45;cursor:default}
+main{height:calc(100dvh - 80px);display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:10px;padding:10px}
+#viewport{position:relative;min-width:0;min-height:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at center,#262522,#111110 80%)}
+#canvasHost{position:absolute;inset:0}#canvasHost canvas{display:block;width:100%;height:100%;touch-action:none}
+#hud{position:absolute;left:12px;right:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}.pill{background:#111d;color:#d7c5a9;border:1px solid #59472e;border-radius:7px;padding:7px 10px;font-size:12px}
+#status{position:absolute;bottom:12px;left:12px;right:12px;background:#111d;border:1px solid #39332a;padding:10px 12px;border-radius:8px;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+#status.error{color:var(--danger);border-color:#77443d}
+#fallback{display:none;position:absolute;inset:0;place-items:center;text-align:center;padding:24px;color:var(--danger);background:#171614ee;z-index:3}
+aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding:14px;overflow:auto}h2{font-size:13px;letter-spacing:.12em;color:var(--gold);margin:5px 0 13px}.field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}input[type=number],select{width:100%;background:#121211;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:10px;font:inherit}
+.full{width:100%;margin:4px 0}.help{font-size:12px;line-height:1.5;color:var(--muted)}#fileInput{display:none}.divider{height:1px;background:#42372a;margin:15px 0}
+@media(max-width:720px){header{padding:10px;align-items:flex-start}.brand{font-size:14px}.sub{font-size:9px}.actions{gap:5px}button,.filelabel{padding:9px 10px;font-size:12px;min-height:38px}main{grid-template-columns:1fr;height:calc(100dvh - 82px);padding:7px;gap:7px}aside{position:absolute;z-index:4;right:14px;top:92px;width:min(260px,calc(100vw - 28px));max-height:72dvh;box-shadow:0 8px 32px #0009;display:none}aside.open{display:block}#viewport{grid-row:1;min-height:0}#panelToggle{display:inline-block}}
+@media(min-width:721px){#panelToggle{display:none}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<header>
+<div><div class="brand">NOCTURNE</div><div style="font-weight:700;letter-spacing:.19em">STUDIO 3D</div><div class="sub">PARAMETRIC FURNITURE · CAD WORKBENCH</div></div>
+<div class="actions">
+<label class="filelabel primary" for="fileInput">Importar STL</label><input id="fileInput" type="file" accept=".stl,model/stl,application/sla">
+<button id="exportBtn">Exportar STL</button><button id="panelToggle">⚙</button>
+</div>
+</header>
+<main>
+<section id="viewport" aria-label="Escena 3D">
+<div id="canvasHost"></div>
+<div id="hud"><span class="pill" id="engineState">Iniciando motor 3D…</span><span class="pill" id="modelState">Modelo de demostración</span></div>
+<div id="fallback"></div>
+<div id="status" role="status">Preparando escena 3D…</div>
+</section>
+<aside id="panel">
+<h2>MODELO Y ESCENA</h2>
+<button class="primary full" id="importPanel">＋ Importar archivo STL</button>
+<button class="full" id="resetView">Centrar vista</button>
+<button class="full" id="demoBtn">Crear cubo de prueba</button>
+<div class="divider"></div>
+<h2>TRANSFORMACIÓN</h2>
+<div class="field"><label for="scaleInput">Escala uniforme</label><input id="scaleInput" type="number" min="0.001" max="1000" step="0.1" value="1"></div>
+<button class="full" id="applyScale">Aplicar escala</button>
+<div class="field"><label for="colorInput">Material</label><input id="colorInput" type="color" value="#c9a56c" style="width:100%;height:42px;background:#121211;border:1px solid var(--line);border-radius:7px;padding:4px"></div>
+<button class="full" id="applyColor">Aplicar material</button>
+<div class="divider"></div>
+<h2>INFORMACIÓN</h2><div class="help" id="modelInfo">No hay archivo STL importado.</div>
+<div class="divider"></div><div class="help">Importa un STL para visualizarlo. Arrastra con un dedo para orbitar; pellizca para acercar/alejar. Usa el ratón para controles de escritorio.</div>
+</aside>
+</main>
+<script type="module">
+const $=id=>document.getElementById(id);
+const status=(msg,error=false)=>{$('status').textContent=msg;$('status').classList.toggle('error',error)};
+const engineState=$('engineState');
+let THREE, scene, camera, renderer, controls, STLLoader, STLExporter, currentModel=null, grid;
+function showFatal(err){
+ engineState.textContent='Motor 3D no disponible';
+ $('fallback').style.display='grid';
+ $('fallback').textContent='No se pudo iniciar el motor 3D. Comprueba la conexión a Internet y vuelve a cargar la página. Detalle: '+(err?.message||String(err));
+ status('Error al cargar el motor 3D: '+(err?.message||String(err)),true);
+}
+function frameObject(obj){
+ const box=new THREE.Box3().setFromObject(obj);
+ if(box.isEmpty()) return;
+ const center=box.getCenter(new THREE.Vector3()), size=box.getSize(new THREE.Vector3());
+ obj.position.sub(center);
+ const maxDim=Math.max(size.x,size.y,size.z,1);
+ camera.position.set(maxDim*1.7,maxDim*1.35,maxDim*1.8);
+ camera.near=Math.max(maxDim/1000,.001);camera.far=maxDim*100;camera.updateProjectionMatrix();
+ controls.target.set(0,0,0);controls.update();
+}
+function setModel(obj,label){
+ if(currentModel){scene.remove(currentModel);currentModel.traverse(n=>{if(n.geometry)n.geometry.dispose();if(n.material){if(Array.isArray(n.material))n.material.forEach(m=>m.dispose());else n.material.dispose();}})}
+ currentModel=obj;scene.add(obj);frameObject(obj);
+ $('modelState').textContent=label;
+ const box=new THREE.Box3().setFromObject(obj), size=box.getSize(new THREE.Vector3());
+ $('modelInfo').innerHTML='Dimensiones aproximadas:<br>Ancho: '+size.x.toFixed(2)+'<br>Alto: '+size.y.toFixed(2)+'<br>Profundidad: '+size.z.toFixed(2);
+}
+function makeDemo(){
+ const g=new THREE.BoxGeometry(100,60,40);
+ const m=new THREE.MeshStandardMaterial({color:$('colorInput').value,metalness:.12,roughness:.55});
+ const mesh=new THREE.Mesh(g,m);mesh.castShadow=true;mesh.receiveShadow=true;
+ setModel(mesh,'Cubo de demostración');status('Motor 3D listo. Importa un archivo STL para comenzar.'); 
+}
+async function boot(){
+ try{
+  const modules=await Promise.all([
+   import('three'),
+   import('three/addons/controls/OrbitControls.js'),
+   import('three/addons/loaders/STLLoader.js'),
+   import('three/addons/exporters/STLExporter.js')
+  ]);
+  [THREE]=modules;const OrbitControls=modules[1].OrbitControls;STLLoader=modules[2].STLLoader;STLExporter=modules[3].STLExporter;
+  scene=new THREE.Scene();scene.background=new THREE.Color('#171614');
+  camera=new THREE.PerspectiveCamera(45,1,.1,100000);camera.position.set(180,140,190);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
+  $('canvasHost').appendChild(renderer.domElement);
+  controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;
+  scene.add(new THREE.HemisphereLight(0xffffff,0x5b4b37,2));
+  const key=new THREE.DirectionalLight(0xffe0b0,3);key.position.set(120,180,140);scene.add(key);
+  const fill=new THREE.DirectionalLight(0xffffff,1.1);fill.position.set(-100,50,-120);scene.add(fill);
+  grid=new THREE.GridHelper(500,25,0x8e744d,0x39332a);scene.add(grid);
+  const axes=new THREE.AxesHelper(70);scene.add(axes);
+  const resize=()=>{const w=$('canvasHost').clientWidth,h=$('canvasHost').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
+  new ResizeObserver(resize).observe($('canvasHost'));window.addEventListener('orientationchange',()=>setTimeout(resize,250));resize();
+  const animate=()=>{requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)};animate();
+  engineState.textContent='Motor 3D listo';$('fallback').style.display='none';makeDemo();
+ }catch(err){console.error('NOCTURNE engine init error',err);showFatal(err);}
+}
+$('fileInput').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ if(!STLLoader||!renderer){status('El motor 3D aún no está listo. Recarga la página cuando tengas conexión.',true);e.target.value='';return;}
+ status('Leyendo '+file.name+'…');
+ try{
+  const buffer=await file.arrayBuffer();
+  if(buffer.byteLength<15)throw new Error('El archivo está vacío o es demasiado pequeño.');
+  const loader=new STLLoader();const geometry=loader.parse(buffer);
+  if(!geometry||!geometry.attributes?.position||geometry.attributes.position.count<3)throw new Error('El archivo no contiene una malla STL válida.');
+  geometry.computeVertexNormals();geometry.computeBoundingBox();
+  const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:$('colorInput').value,metalness:.08,roughness:.65,side:THREE.DoubleSide}));
+  mesh.castShadow=true;mesh.receiveShadow=true;setModel(mesh,file.name);
+  status('STL importado correctamente: '+file.name);
+ }catch(err){console.error(err);status('No se pudo importar el STL: '+(err.message||String(err)),true);}
+ e.target.value='';
+});
+$('importPanel').onclick=()=>$('fileInput').click();
+$('panelToggle').onclick=()=>$('panel').classList.toggle('open');
+$('resetView').onclick=()=>{if(currentModel)frameObject(currentModel);else{camera.position.set(180,140,190);controls.target.set(0,0,0);controls.update();}};
+$('demoBtn').onclick=makeDemo;
+$('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
+$('applyColor').onclick=()=>{if(!currentModel)return;currentModel.traverse(o=>{if(o.isMesh){o.material.color.set($('colorInput').value);o.material.needsUpdate=true;}});status('Material actualizado.');};
+$('exportBtn').onclick=()=>{if(!currentModel||!STLExporter){status('No hay un modelo listo para exportar.',true);return;}try{currentModel.updateMatrixWorld(true);const data=new STLExporter().parse(currentModel,{binary:true});const blob=new Blob([data],{type:'model/stl'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nocturne-modelo.stl';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);status('Exportación STL iniciada.');}catch(err){status('Error al exportar: '+err.message,true);}};
+boot();
+</script>
+</body>
+</html>
