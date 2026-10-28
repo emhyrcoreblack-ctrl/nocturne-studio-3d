@@ -126,10 +126,11 @@ function finishSketch(){
 
 function addOperation(label){operationHistory.push(label);const tree=$('operationTree');tree.innerHTML=operationHistory.map((item,i)=>'<div style="padding:7px 5px;border-bottom:1px solid #39332a">↳ '+(i+1)+'. '+item+'</div>').join('');}
 function showFatal(err){
+ const detail=err?.message||String(err);
  engineState.textContent='Motor 3D no disponible';
  $('fallback').style.display='grid';
- $('fallback').textContent='No se pudo iniciar el motor 3D. Comprueba la conexión a Internet y vuelve a cargar la página. Detalle: '+(err?.message||String(err));
- status('Error al cargar el motor 3D: '+(err?.message||String(err)),true);
+ $('fallback').textContent='NO SE PUDO INICIAR EL MOTOR 3D.\n\n'+detail+'\n\nComprueba Internet y vuelve a cargar. Si persiste, abre la página en Chrome y desactiva el ahorro de datos.';
+ status('Motor 3D no disponible: '+detail,true);
 }
 function frameObject(obj){
  const box=new THREE.Box3().setFromObject(obj);
@@ -156,12 +157,15 @@ function makeDemo(){
 }
 async function boot(){
  try{
-  const modules=await Promise.all([
+  // Evita dejar la interfaz bloqueada indefinidamente si el CDN no responde en el móvil.
+  const moduleLoad=Promise.all([
    import('three'),
    import('three/addons/controls/OrbitControls.js'),
    import('three/addons/loaders/STLLoader.js'),
    import('three/addons/exporters/STLExporter.js')
   ]);
+  const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tiempo agotado al descargar Three.js desde jsDelivr. Comprueba Internet o prueba otro navegador/red.')),12000));
+  const modules=await Promise.race([moduleLoad,timeout]);
   [THREE]=modules;const OrbitControls=modules[1].OrbitControls;STLLoader=modules[2].STLLoader;STLExporter=modules[3].STLExporter;
   scene=new THREE.Scene();scene.background=new THREE.Color('#171614');
   camera=new THREE.PerspectiveCamera(45,1,.1,100000);camera.position.set(180,140,190);
