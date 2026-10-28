@@ -111,6 +111,7 @@ function refreshSketchLine(closed=false){
 }
 function resetSketch(){
  drawingSketch=false;sketchPoints=[];
+ if(controls)controls.enabled=true;
  if(sketchLine){scene.remove(sketchLine);sketchLine.geometry.dispose();sketchLine.material.dispose();sketchLine=null;}
  $('drawModeBtn').classList.remove('primary');$('drawModeBtn').textContent='✎ Dibujar perfil en el plano';
  $('finishSketchBtn').disabled=true;$('extrudeSketchBtn').disabled=true;
