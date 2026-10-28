@@ -189,7 +189,8 @@ function createWorkPlanes(){
   ['YZ',new THREE.Vector3(0,Math.PI/2,0)]
  ];
  for(const [key,rotation] of defs){
-  const geo=new THREE.PlaneGeometry(220,220);
+  const planeExtent=2000;
+   const geo=new THREE.PlaneGeometry(planeExtent,planeExtent);
   const mat=new THREE.MeshBasicMaterial({color:0x7696b5,transparent:true,opacity:.075,side:THREE.DoubleSide,depthWrite:false});
   const mesh=new THREE.Mesh(geo,mat);mesh.userData.workPlaneKey=key;mesh.rotation.set(rotation.x,rotation.y,rotation.z);mesh.renderOrder=1;scene.add(mesh);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x8daac7,transparent:true,opacity:.72,depthTest:false,depthWrite:false}));
@@ -208,7 +209,7 @@ function createWorkPlanes(){
   const ctx=canvas.getContext('2d');ctx.font='bold 38px system-ui, sans-serif';ctx.fillStyle='#c2d5e8';ctx.fillText(({XY:'SUPERIOR (XY)',XZ:'FRONTAL (XZ)',YZ:'DERECHO (YZ)'})[key],12,61);
   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
   const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
-  label.scale.set(92,17,1);label.position.set(-48,-82,1);mesh.localToWorld(label.position);label.renderOrder=4;scene.add(label);
+  label.scale.set(180,34,1);label.position.set(-900,-850,1);mesh.localToWorld(label.position);label.renderOrder=4;scene.add(label);
   mesh.userData.gridLines=gridLines;mesh.userData.label=label;
   workPlaneMeshes[key]=mesh;workPlaneEdges[key]=edges;
  }
@@ -349,7 +350,10 @@ async function boot(){
    orientationRaycaster=new THREE.Raycaster();
   };
   const cubeBaseRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(24),THREE.MathUtils.degToRad(32),0));const syncViewCube=()=>{if(!camera||!controls||!orientationCube||!orientationRenderer)return;orientationCube.quaternion.copy(camera.quaternion).invert().multiply(cubeBaseRotation);orientationCube.updateMatrixWorld(true);orientationRenderer.clear();orientationRenderer.render(orientationScene,orientationCamera);};
-  initOrientationCube();const animate=()=>{requestAnimationFrame(animate);controls.update();syncViewCube();renderer.render(scene,camera)};animate();
+  initOrientationCube();const animate=()=>{requestAnimationFrame(animate);controls.update();
+    // Mantener los planos y la geometría dentro del rango visible al acercar/alejar.
+    if(camera&&controls&&camera.isPerspectiveCamera){const dist=Math.max(camera.position.distanceTo(controls.target),0.001);camera.near=Math.max(0.0001,Math.min(0.1,dist/100000));camera.far=Math.max(100000,dist*10000);camera.updateProjectionMatrix();}
+    syncViewCube();renderer.render(scene,camera)};animate();
   engineState.textContent='Motor 3D listo';$('fallback').style.display='none';
    $('modelState').textContent='Escena vacía · elige un plano';
    $('modelInfo').textContent='No hay ningún sólido. Selecciona un plano y crea tu primera forma.';
