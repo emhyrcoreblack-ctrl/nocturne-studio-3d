@@ -63,12 +63,6 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <section id="viewport" aria-label="Escena 3D">
 <div id="canvasHost"></div>
 <div id="hud"><span class="pill" id="engineState">Iniciando motor 3D…</span><span class="pill" id="modelState">Escena vacía · elige un plano</span></div>
-<div id="planePicker" aria-label="Elegir plano de trabajo">
- <button type="button" data-plane="XY" class="active">XY · Superior</button>
- <button type="button" data-plane="XZ">XZ · Frontal</button>
- <button type="button" data-plane="YZ">YZ · Lateral</button>
- <span class="plane-note" id="planeNote">Selecciona XY, XZ o YZ para orientar el visor</span>
-</div>
 <div id="viewGizmo" aria-label="Control de orientación de la vista">
  <button type="button" class="orbit-lock" id="orbitLock" aria-pressed="false" aria-label="Bloquear rotación de cámara" title="Bloquear o permitir rotación"><span id="lockIcon">♙</span></button>
  <div id="viewCube" role="button" tabindex="0" aria-label="Abrir perspectivas y orientación">
@@ -207,14 +201,16 @@ function chooseWorkPlane(key,orientCamera=true){
  if(!['XY','XZ','YZ'].includes(key))return;
  $('workPlane').value=key;updatePlaneAppearance();
  if(orientCamera&&camera&&controls){
-  const distance=260;
-  if(key==='XY'){camera.up.set(0,0,-1);camera.position.set(0,distance,0.01);}
-  else if(key==='XZ'){camera.up.set(0,1,0);camera.position.set(0,0,distance);}
-  else {camera.up.set(0,1,0);camera.position.set(distance,0,0);}
-  controls.target.set(0,0,0);camera.lookAt(0,0,0);controls.update();
+  // Reorienta la cámara al plano seleccionado conservando la distancia y el centro actuales.
+  // Así la vista queda de frente sin hacer zoom ni saltar al origen.
+  const target=controls.target.clone();
+  const distance=Math.max(camera.position.distanceTo(target),0.01);
+  if(key==='XY'){camera.up.set(0,0,-1);camera.position.copy(target).add(new THREE.Vector3(0,distance,0.001));}
+  else if(key==='XZ'){camera.up.set(0,1,0);camera.position.copy(target).add(new THREE.Vector3(0,0,distance));}
+  else {camera.up.set(0,1,0);camera.position.copy(target).add(new THREE.Vector3(distance,0,0));}
+  camera.lookAt(target);controls.target.copy(target);controls.update();
  }
- const note=$('planeNote');if(note)note.textContent='Plano '+key+' seleccionado · vista orientada para dibujar';
-  status('Plano '+key+' seleccionado. Ahora puedes crear un perfil o dibujar el boceto.');
+ status('Plano '+key+' seleccionado. Vista orientada sin cambiar el zoom.');
 }
 function activeSketchPlane(){
  const p=$('workPlane').value;
