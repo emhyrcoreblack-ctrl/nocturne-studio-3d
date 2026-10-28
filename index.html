@@ -290,19 +290,19 @@ async function boot(){
   // Evita dejar la interfaz bloqueada indefinidamente si el CDN no responde en el móvil.
   const moduleLoad=Promise.all([
    import('three'),
-   import('three/addons/controls/OrbitControls.js'),
+   import('three/addons/controls/TrackballControls.js'),
    import('three/addons/loaders/STLLoader.js'),
    import('three/addons/exporters/STLExporter.js')
   ]);
   const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('No se pudieron descargar los módulos 3D en 12 segundos. Puede ser un bloqueo del CDN o de la conexión. Recarga e inténtalo en otra red.')),12000));
   const modules=await Promise.race([moduleLoad,timeout]);
-  [THREE]=modules;const OrbitControls=modules[1].OrbitControls;STLLoader=modules[2].STLLoader;STLExporter=modules[3].STLExporter;
+  [THREE]=modules;const TrackballControls=modules[1].TrackballControls;STLLoader=modules[2].STLLoader;STLExporter=modules[3].STLExporter;
   scene=new THREE.Scene();scene.background=new THREE.Color('#171614');
   camera=new THREE.PerspectiveCamera(45,1,.1,100000);camera.position.set(180,140,190);
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   $('canvasHost').appendChild(renderer.domElement);
   installSketchPointerHandlers();
-  controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;
+  controls=new TrackballControls(camera,renderer.domElement);controls.rotateSpeed=4.0;controls.zoomSpeed=1.2;controls.panSpeed=0.8;controls.staticMoving=false;controls.dynamicDampingFactor=0.12;controls.noRotate=false;controls.noZoom=false;controls.noPan=false;controls.minDistance=0.01;controls.maxDistance=1000000;
   scene.add(new THREE.HemisphereLight(0xffffff,0x5b4b37,2));
   const key=new THREE.DirectionalLight(0xffe0b0,3);key.position.set(120,180,140);scene.add(key);
   const fill=new THREE.DirectionalLight(0xffffff,1.1);fill.position.set(-100,50,-120);scene.add(fill);
