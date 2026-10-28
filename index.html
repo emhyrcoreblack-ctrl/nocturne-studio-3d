@@ -201,7 +201,7 @@ function createWorkPlanes(){
   const ctx=canvas.getContext('2d');ctx.font='bold 38px system-ui, sans-serif';ctx.fillStyle='#c2d5e8';ctx.fillText(({XY:'SUPERIOR (XY)',XZ:'FRONTAL (XZ)',YZ:'DERECHO (YZ)'})[key],12,61);
   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
   const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
-  label.scale.set(92,17,1);label.position.set(-48,-82,1);label.rotation.copy(mesh.rotation);label.renderOrder=4;scene.add(label);
+  label.scale.set(92,17,1);label.position.set(-48,-82,1);mesh.localToWorld(label.position);label.renderOrder=4;scene.add(label);
   mesh.userData.gridLines=gridLines;mesh.userData.label=label;
   workPlaneMeshes[key]=mesh;workPlaneEdges[key]=edges;
  }
@@ -417,7 +417,7 @@ function installSketchPointerHandlers(){
 }
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,false)));
- document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=()=>chooseWorkPlane(face.dataset.view,true);face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});});
+ document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=e=>{e.stopPropagation();chooseWorkPlane(face.dataset.view,true);};face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();chooseWorkPlane(face.dataset.view,true);}});});
  const viewMenu=$('viewMenu');
  $('viewCube').addEventListener('click',()=>{viewMenu.classList.toggle('open');});
  $('viewCube').setAttribute('role','button');$('viewCube').setAttribute('tabindex','0');$('viewCube').setAttribute('aria-label','Abrir lista de orientaciones y perspectiva');
