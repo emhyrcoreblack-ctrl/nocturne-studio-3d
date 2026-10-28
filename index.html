@@ -24,16 +24,6 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 @media(max-width:720px){header{padding:10px;align-items:flex-start}.brand{font-size:14px}.sub{font-size:9px}.actions{gap:5px}button,.filelabel{padding:9px 10px;font-size:12px;min-height:38px}main{grid-template-columns:1fr;height:calc(100dvh - 82px);padding:7px;gap:7px}aside{position:absolute;z-index:4;right:14px;top:92px;width:min(260px,calc(100vw - 28px));max-height:72dvh;box-shadow:0 8px 32px #0009;display:none}aside.open{display:block}#viewport{grid-row:1;min-height:0}#panelToggle{display:inline-block}}
 @media(min-width:721px){#panelToggle{display:none}}
 
-/* Control de giro manual XYZ */
-#axisController{position:absolute;z-index:15;left:12px;top:76px;width:190px;padding:11px 12px;background:#171614eF;border:1px solid #8c7049;border-radius:12px;box-shadow:0 8px 22px #0008;backdrop-filter:blur(8px)}
-#axisController .axis-title{font-size:11px;font-weight:800;letter-spacing:1.3px;color:var(--gold);margin:0 0 9px}
-#axisController .axis-row{display:grid;grid-template-columns:18px 1fr 44px;align-items:center;gap:7px;margin:8px 0;font-size:12px}
-#axisController .axis-letter{font-weight:900;text-align:center}
-#axisController input[type=range]{width:100%;min-width:0;accent-color:var(--gold);cursor:pointer}
-#axisController output{font-variant-numeric:tabular-nums;text-align:right;color:#f4d9a7;font-size:11px}
-#axisController .axis-actions{display:flex;gap:6px;margin-top:8px}
-#axisController .axis-actions button{flex:1;min-height:30px;padding:5px 7px;font-size:11px}
-@media(max-width:720px){#axisController{left:8px;top:106px;width:158px;padding:8px 9px}#axisController .axis-row{grid-template-columns:15px 1fr 38px;gap:5px;margin:6px 0}#axisController .axis-title{font-size:10px}#axisController .axis-actions button{font-size:10px}}
 /* Gizmo de orientación estilo CAD */
 #viewGizmo{position:absolute;z-index:3;top:72px;right:10px;width:112px;display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:auto;filter:drop-shadow(0 3px 8px #0008)}
 #viewGizmo .orbit-lock{width:64px;height:64px;border:1px solid #8c7049;border-radius:50%;background:#171614eF;color:var(--gold);font-size:25px;display:grid;place-items:center;position:relative;padding:0;min-height:0}
@@ -73,13 +63,6 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <section id="viewport" aria-label="Escena 3D">
 <div id="canvasHost"></div>
 <div id="hud"><span class="pill" id="engineState">Iniciando motor 3D…</span><span class="pill" id="modelState">Escena vacía · elige un plano</span></div>
-<div id="axisController" aria-label="Control manual de giro de la escena">
- <div class="axis-title">GIRO LIBRE · EJES XYZ</div>
- <label class="axis-row"><span class="axis-letter" style="color:#ff8e83">X</span><input id="axisX" type="range" min="-180" max="180" value="0" step="1" aria-label="Giro sobre eje X"><output id="axisXValue">0°</output></label>
- <label class="axis-row"><span class="axis-letter" style="color:#a5df91">Y</span><input id="axisY" type="range" min="-180" max="180" value="0" step="1" aria-label="Giro sobre eje Y"><output id="axisYValue">0°</output></label>
- <label class="axis-row"><span class="axis-letter" style="color:#91c8ff">Z</span><input id="axisZ" type="range" min="-180" max="180" value="0" step="1" aria-label="Giro sobre eje Z"><output id="axisZValue">0°</output></label>
- <div class="axis-actions"><button type="button" id="axisReset">Restablecer</button><button type="button" id="axisCenter">Centrar giro</button></div>
-</div>
 <div id="viewGizmo" aria-label="Control de orientación de la vista">
  <button type="button" class="orbit-lock" id="orbitLock" aria-pressed="false" aria-label="Bloquear rotación de cámara" title="Bloquear o permitir rotación"><span id="lockIcon">♙</span></button>
  <div id="viewCube" role="button" tabindex="0" aria-label="Abrir perspectivas y orientación">
@@ -189,7 +172,7 @@ function createWorkPlanes(){
   ['YZ',new THREE.Vector3(0,Math.PI/2,0)]
  ];
  for(const [key,rotation] of defs){
-  const planeExtent=2000;
+  const planeExtent=220;
    const geo=new THREE.PlaneGeometry(planeExtent,planeExtent);
   const mat=new THREE.MeshBasicMaterial({color:0x7696b5,transparent:true,opacity:.075,side:THREE.DoubleSide,depthWrite:false});
   const mesh=new THREE.Mesh(geo,mat);mesh.userData.workPlaneKey=key;mesh.rotation.set(rotation.x,rotation.y,rotation.z);mesh.renderOrder=1;scene.add(mesh);
@@ -209,7 +192,7 @@ function createWorkPlanes(){
   const ctx=canvas.getContext('2d');ctx.font='bold 38px system-ui, sans-serif';ctx.fillStyle='#c2d5e8';ctx.fillText(({XY:'SUPERIOR (XY)',XZ:'FRONTAL (XZ)',YZ:'DERECHO (YZ)'})[key],12,61);
   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
   const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
-  label.scale.set(180,34,1);label.position.set(-900,-850,1);mesh.localToWorld(label.position);label.renderOrder=4;scene.add(label);
+  label.scale.set(92,17,1);label.position.set(-48,-82,1);mesh.localToWorld(label.position);label.renderOrder=4;scene.add(label);
   mesh.userData.gridLines=gridLines;mesh.userData.label=label;
   workPlaneMeshes[key]=mesh;workPlaneEdges[key]=edges;
  }
@@ -500,54 +483,7 @@ document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventList
 
  // Controles manuales de cámara en ejes XYZ. Se aplica desde una orientación base fija
 // para que los deslizadores respondan de forma predecible y no acumulen errores.
-const axisAngles={x:0,y:0,z:0};
-let axisBasePosition=null,axisBaseUp=null,axisBaseTarget=null;
-function captureAxisBase(){
- if(!camera||!controls)return;
- axisBasePosition=camera.position.clone();
- axisBaseUp=camera.up.clone();
- axisBaseTarget=controls.target.clone();
-}
-function applyAxisRotation(){
- if(!camera||!controls||!THREE)return;
- if(!axisBasePosition||!axisBaseTarget||!axisBaseUp)captureAxisBase();
- const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(
-  THREE.MathUtils.degToRad(axisAngles.x),
-  THREE.MathUtils.degToRad(axisAngles.y),
-  THREE.MathUtils.degToRad(axisAngles.z),'XYZ'
- ));
- const offset=axisBasePosition.clone().sub(axisBaseTarget).applyQuaternion(q);
- camera.position.copy(axisBaseTarget).add(offset);
- camera.up.copy(axisBaseUp).applyQuaternion(q);
- controls.target.copy(axisBaseTarget);
- camera.lookAt(controls.target);
- controls.update();
-}
-['X','Y','Z'].forEach(letter=>{
- const input=$('axis'+letter),output=$('axis'+letter+'Value');
- if(!input||!output)return;
- input.addEventListener('input',()=>{
-  axisAngles[letter.toLowerCase()]=Number(input.value);
-  output.value=input.value+'°';
-  applyAxisRotation();
-  status('Giro de cámara: X '+axisAngles.x+'°, Y '+axisAngles.y+'°, Z '+axisAngles.z+'°.');
- });
-});
-$('axisReset').addEventListener('click',()=>{
- ['X','Y','Z'].forEach(letter=>{$('axis'+letter).value=0;$('axis'+letter+'Value').value='0°';axisAngles[letter.toLowerCase()]=0;});
- captureAxisBase();applyAxisRotation();
- status('Giro restablecido. Usa los deslizadores X, Y y Z para orientar la vista.');
-});
-$('axisCenter').addEventListener('click',()=>{
- if(!camera||!controls)return;
- const target=controls.target.clone(),distance=Math.max(camera.position.distanceTo(target),1);
- camera.position.copy(target).add(new THREE.Vector3(distance*.65,distance*.5,distance*.65));
- camera.up.set(0,1,0);camera.lookAt(target);controls.target.copy(target);
- ['X','Y','Z'].forEach(letter=>{$('axis'+letter).value=0;$('axis'+letter+'Value').value='0°';axisAngles[letter.toLowerCase()]=0;});
- controls.update();captureAxisBase();
- status('Vista centrada. Ya puedes girar con los controles XYZ.');
-});
-$('orbitLock').addEventListener('click',()=>{if(!controls)return;controls.enableRotate=!controls.enableRotate;const locked=!controls.enableRotate;$('orbitLock').setAttribute('aria-pressed',String(locked));$('orbitLock').setAttribute('aria-label',locked?'Permitir rotación de cámara':'Bloquear rotación de cámara');$('lockIcon').textContent=locked?'🔒':'♙';status(locked?'Rotación de cámara bloqueada.':'Rotación de cámara activada.');});
+
 $('workPlane').addEventListener('change',()=>chooseWorkPlane($('workPlane').value,false));
 
 $('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
