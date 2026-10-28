@@ -116,7 +116,7 @@ function updatePlaneAppearance(){
  const selected=$('workPlane').value;
  document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.classList.toggle('active',b.dataset.plane===selected));
  for(const [key,mesh] of Object.entries(workPlaneMeshes)){
-  mesh.material.opacity=key===selected?.19:.055;
+  mesh.material.opacity = (key === selected) ? 0.19 : 0.055;
   mesh.material.color.set(key===selected?0xd2ad73:0x8295a8);
   mesh.material.needsUpdate=true;
  }
