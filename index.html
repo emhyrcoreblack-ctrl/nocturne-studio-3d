@@ -29,7 +29,7 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewGizmo .orbit-lock{width:64px;height:64px;border:1px solid #8c7049;border-radius:50%;background:#171614eF;color:var(--gold);font-size:25px;display:grid;place-items:center;position:relative;padding:0;min-height:0}
 #viewGizmo .orbit-lock:before{content:'↻';position:absolute;inset:2px;border:1px solid #8c704977;border-radius:50%;font-size:48px;line-height:52px;color:#d2ad73aa;pointer-events:none}
 #viewGizmo .orbit-lock span{position:relative;background:#171614;padding:0 4px;border-radius:5px}
-#viewCube{width:68px;height:68px;position:relative;overflow:visible;perspective:360px;perspective-origin:50% 50%;transform-style:preserve-3d;cursor:pointer;touch-action:manipulation;isolation:isolate}
+#viewCube{width:68px;height:68px;position:relative;display:block;overflow:visible;perspective:520px;perspective-origin:50% 50%;transform-style:preserve-3d;transform:rotateX(-24deg) rotateY(-34deg);transform-origin:50% 50%;cursor:pointer;touch-action:manipulation;isolation:isolate}
 #viewCube .cube-face{position:absolute;left:0;top:0;width:68px;height:68px;min-height:0;padding:0;display:grid;place-items:center;border:1.5px solid #f1d29b;border-radius:2px;background:linear-gradient(145deg,#756044 0%,#393026 45%,#191817 100%);color:#fff0d2;font-size:10px;font-weight:700;letter-spacing:.2px;box-shadow:inset 0 0 12px #e4c38a24,0 1px 2px #0009;backface-visibility:hidden;transform-style:preserve-3d}
 #viewCube .cube-face:hover,#viewCube .cube-face:focus{background:linear-gradient(145deg,#b68b4fee,#56432b);border-color:#fff0cf;outline:1px solid #fff0cf}
 #viewCube .face-front{transform:translateZ(34px)}
@@ -38,7 +38,7 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewCube .face-left{transform:rotateY(-90deg) translateZ(34px)}
 #viewCube .face-top{transform:rotateX(90deg) translateZ(34px)}
 #viewCube .face-bottom{transform:rotateX(-90deg) translateZ(34px)}
-@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:58px;height:58px;perspective:300px}#viewCube .cube-face{width:58px;height:58px;font-size:9px}#viewCube .face-front{transform:translateZ(29px)}#viewCube .face-back{transform:rotateY(180deg) translateZ(29px)}#viewCube .face-right{transform:rotateY(90deg) translateZ(29px)}#viewCube .face-left{transform:rotateY(-90deg) translateZ(29px)}#viewCube .face-top{transform:rotateX(90deg) translateZ(29px)}#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(29px)}}
+@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:58px;height:58px;perspective:440px;transform:rotateX(-24deg) rotateY(-34deg)}#viewCube .cube-face{width:58px;height:58px;font-size:9px}#viewCube .face-front{transform:translateZ(29px)}#viewCube .face-back{transform:rotateY(180deg) translateZ(29px)}#viewCube .face-right{transform:rotateY(90deg) translateZ(29px)}#viewCube .face-left{transform:rotateY(-90deg) translateZ(29px)}#viewCube .face-top{transform:rotateX(90deg) translateZ(29px)}#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(29px)}}
 
 #viewGizmo{z-index:20}
 #viewCube{cursor:pointer;touch-action:manipulation}
