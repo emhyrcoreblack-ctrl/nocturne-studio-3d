@@ -451,10 +451,10 @@ $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.len
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,false)));
  document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=e=>{e.stopPropagation();chooseWorkPlane(face.dataset.view,true);viewMenu.classList.add('open');};face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();chooseWorkPlane(face.dataset.view,true);viewMenu.classList.add('open');}});});
  const cubeCanvas=$('viewCubeCanvas');
- cubeCanvas.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();});
- cubeCanvas.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(orientationRaycaster&&orientationCamera&&orientationCube){const r=cubeCanvas.getBoundingClientRect();const p=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);orientationRaycaster.setFromCamera(p,orientationCamera);const hit=orientationRaycaster.intersectObject(orientationCube)[0];if(hit){const n=hit.face.normal.clone().transformDirection(orientationCube.matrixWorld);const abs=[Math.abs(n.x),Math.abs(n.y),Math.abs(n.z)];if(abs[1]>=abs[0]&&abs[1]>=abs[2])chooseWorkPlane('XY',true);else if(abs[0]>=abs[1]&&abs[0]>=abs[2])chooseWorkPlane('YZ',true);else chooseWorkPlane('XZ',true);}}viewMenu.classList.toggle('open');});
+ cubeCanvas.addEventListener('pointerdown',e=>{e.stopPropagation();});
+ cubeCanvas.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();viewMenu.classList.add('open');});
  const viewMenu=$('viewMenu');
- $('viewCube').addEventListener('click',e=>{if(e.target=== $('viewCube'))viewMenu.classList.toggle('open');});
+ $('viewCube').addEventListener('click',e=>{if(e.target=== $('viewCube'))viewMenu.classList.add('open');});
  $('viewCube').setAttribute('role','button');$('viewCube').setAttribute('tabindex','0');$('viewCube').setAttribute('aria-label','Abrir lista de orientaciones y perspectiva');
  $('viewCube').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();viewMenu.classList.toggle('open');}});
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#viewGizmo'))viewMenu.classList.remove('open');});
