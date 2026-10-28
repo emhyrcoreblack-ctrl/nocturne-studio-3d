@@ -319,7 +319,15 @@ async function boot(){
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   $('canvasHost').appendChild(renderer.domElement);
   installSketchPointerHandlers();
-  controls=new TrackballControls(camera,renderer.domElement);controls.rotateSpeed=4.0;controls.zoomSpeed=1.2;controls.panSpeed=0.8;controls.staticMoving=false;controls.dynamicDampingFactor=0.12;controls.noRotate=false;controls.noZoom=false;controls.noPan=false;controls.minDistance=0.01;controls.maxDistance=1000000;
+  controls=new TrackballControls(camera,renderer.domElement);
+  controls.rotateSpeed=4.0;controls.zoomSpeed=1.2;controls.panSpeed=0.8;
+  controls.staticMoving=false;controls.dynamicDampingFactor=0.12;
+  controls.noRotate=false;controls.noZoom=false;controls.noPan=false;
+  controls.minDistance=0.01;controls.maxDistance=1000000;
+  // El zoom se realiza alrededor del punto objetivo (eje/origen CAD), no hacia el cursor.
+  controls.target.set(0,0,0);controls.update();
+  controls.addEventListener('start',()=>{});
+  controls.addEventListener('end',()=>{if(camera&&controls){camera.lookAt(controls.target);}});
   scene.add(new THREE.HemisphereLight(0xffffff,0x5b4b37,2));
   const key=new THREE.DirectionalLight(0xffe0b0,3);key.position.set(120,180,140);scene.add(key);
   const fill=new THREE.DirectionalLight(0xffffff,1.1);fill.position.set(-100,50,-120);scene.add(fill);
