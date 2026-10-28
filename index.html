@@ -36,6 +36,16 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewCube .axis{font:bold 12px system-ui,sans-serif}
 #viewCube .axis-x{fill:#ff5d55}#viewCube .axis-y{fill:#80d96d}#viewCube .axis-z{fill:#5c8dff}
 @media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:84px;height:84px}#viewCube text{font-size:11px}}
+
+#viewGizmo{z-index:20}
+#viewCube{cursor:pointer;touch-action:manipulation}
+#viewMenu{position:absolute;top:100%;right:0;width:min(270px,76vw);max-height:min(62vh,520px);overflow:auto;display:none;flex-direction:column;padding:7px;background:#f7f7f7;color:#222;border:1px solid #d2ad73;border-radius:7px;box-shadow:0 8px 28px #0009;z-index:30;overscroll-behavior:contain}
+#viewMenu.open{display:flex}
+#viewMenu .menu-title{font-size:12px;font-weight:800;letter-spacing:1.2px;padding:10px 12px 7px;color:#76582d;border-bottom:1px solid #ddd}
+#viewMenu button{border:0;border-radius:4px;background:transparent;color:#222;text-align:left;font-size:15px;min-height:42px;padding:9px 12px;white-space:normal}
+#viewMenu button:active,#viewMenu button:hover,#viewMenu button:focus-visible{background:#e7d4b2;outline:0}
+#viewMenu .menu-sep{height:1px;background:#ddd;margin:4px 7px}
+@media(max-width:720px){#viewMenu{width:min(270px,78vw);max-height:56vh}#viewMenu button{min-height:43px;font-size:15px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.180.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.180.0/examples/jsm/"}}
@@ -68,6 +78,22 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
   <text x="55" y="34">Top</text><text x="31" y="66">Front</text><text x="76" y="70">Right</text>
   <text class="axis axis-z" x="5" y="20">Z</text><text class="axis axis-x" x="101" y="99">X</text><text class="axis axis-y" x="17" y="92">Y</text>
  </svg>
+ <div id="viewMenu" role="menu" aria-label="Orientación y visualización">
+  <div class="menu-title">ORIENTACIÓN DE VISTA</div>
+  <button type="button" data-camera="top" role="menuitem">Planta · Superior</button>
+  <button type="button" data-camera="bottom" role="menuitem">Inferior</button>
+  <button type="button" data-camera="front" role="menuitem">Alzado · Frontal</button>
+  <button type="button" data-camera="back" role="menuitem">Atrás</button>
+  <button type="button" data-camera="right" role="menuitem">Derecha</button>
+  <button type="button" data-camera="left" role="menuitem">Izquierda</button>
+  <button type="button" data-camera="iso" role="menuitem">Isométrica</button>
+  <button type="button" data-camera="dimetric" role="menuitem">Dimétrico</button>
+  <button type="button" data-camera="trimetric" role="menuitem">Trimétrico</button>
+  <div class="menu-sep"></div><div class="menu-title">PROYECCIÓN Y ESTILO</div>
+  <button type="button" data-action="perspective" role="menuitem">Activar / desactivar perspectiva</button>
+  <button type="button" data-action="shaded" role="menuitem">Sombreado</button>
+  <button type="button" data-action="edges" role="menuitem">Sombreado con aristas</button>
+ </div>
 </div>
 <div id="fallback"></div>
 <div id="status" role="status">Preparando escena 3D…</div>
@@ -372,6 +398,23 @@ function installSketchPointerHandlers(){
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,true)));
  document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=()=>chooseWorkPlane(face.dataset.view,true);face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});});
+ const viewMenu=$('viewMenu');
+ $('viewCube').addEventListener('click',()=>{viewMenu.classList.toggle('open');});
+ $('viewCube').setAttribute('role','button');$('viewCube').setAttribute('tabindex','0');$('viewCube').setAttribute('aria-label','Abrir lista de orientaciones y perspectiva');
+ $('viewCube').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();viewMenu.classList.toggle('open');}});
+ document.addEventListener('pointerdown',e=>{if(!e.target.closest('#viewGizmo'))viewMenu.classList.remove('open');});
+ document.querySelectorAll('#viewMenu [data-camera]').forEach(b=>b.addEventListener('click',()=>{
+  if(!camera||!controls)return;
+  const d=Math.max(camera.position.distanceTo(controls.target),220),t=controls.target.clone();
+  const views={top:[0,1,0,[0,0,-1]],bottom:[0,-1,0,[0,0,1]],front:[0,0,1,[0,1,0]],back:[0,0,-1,[0,1,0]],right:[1,0,0,[0,1,0]],left:[-1,0,0,[0,1,0]],iso:[1,1,1,[0,1,0]],dimetric:[1.8,1,1.8,[0,1,0]],trimetric:[2.4,1.4,1.8,[0,1,0]]};
+  const v=views[b.dataset.camera];camera.up.set(...v[3]);camera.position.set(t.x+v[0]*d,t.y+v[1]*d,t.z+v[2]*d);camera.lookAt(t);controls.target.copy(t);controls.update();viewMenu.classList.remove('open');status('Vista: '+b.textContent.trim()+'.');
+ }));
+ document.querySelectorAll('#viewMenu [data-action]').forEach(b=>b.addEventListener('click',()=>{
+  if(b.dataset.action==='perspective'){if(camera&&camera.isPerspectiveCamera){const old=camera;const next=new THREE.OrthographicCamera(-100,100,100,-100,.1,100000);next.position.copy(old.position);next.up.copy(old.up);next.lookAt(controls.target);next.zoom=1;next.updateProjectionMatrix();camera=next;/* renderer loop reads camera variable */status('Proyección ortográfica activada. Para volver a perspectiva, recarga la página.');}else status('La perspectiva ya está desactivada.');}
+  else if(currentModel){currentModel.traverse(o=>{if(o.isMesh){o.material.wireframe=b.dataset.action==='edges';o.material.needsUpdate=true;}});status(b.dataset.action==='edges'?'Vista con aristas activada.':'Sombreado activado.');}
+  viewMenu.classList.remove('open');
+ }));
+
  $('orbitLock').addEventListener('click',()=>{if(!controls)return;controls.enableRotate=!controls.enableRotate;const locked=!controls.enableRotate;$('orbitLock').setAttribute('aria-pressed',String(locked));$('orbitLock').setAttribute('aria-label',locked?'Permitir rotación de cámara':'Bloquear rotación de cámara');$('lockIcon').textContent=locked?'🔒':'♙';status(locked?'Rotación de cámara bloqueada.':'Rotación de cámara activada.');});
 $('workPlane').addEventListener('change',()=>chooseWorkPlane($('workPlane').value,false));
 
