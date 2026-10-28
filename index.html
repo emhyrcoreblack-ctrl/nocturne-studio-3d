@@ -321,48 +321,12 @@ async function boot(){
   $('canvasHost').appendChild(renderer.domElement);
   installSketchPointerHandlers();
   controls=new TrackballControls(camera,renderer.domElement);
-  controls.rotateSpeed=1.0;controls.zoomSpeed=0.35;controls.panSpeed=0.18;
-  controls.staticMoving=true;controls.dynamicDampingFactor=0.05;
+  controls.rotateSpeed=1.35;controls.zoomSpeed=0.35;controls.panSpeed=0.22;
+  controls.staticMoving=false;controls.dynamicDampingFactor=0.12;
   controls.noRotate=false;controls.noZoom=false;controls.noPan=false;
   controls.minDistance=0.01;controls.maxDistance=1000000;
-  // Zoom táctil controlado manualmente para que el gesto de dos dedos no desplace ni haga saltar los planos.
+  // El zoom se realiza alrededor del punto objetivo (eje/origen CAD), no hacia el cursor.
   controls.target.set(0,0,0);controls.update();
-  const touchPointers=new Map();let pinchStartDistance=0,pinchStartCameraDistance=0;
-  const touchCanvas=renderer.domElement;touchCanvas.style.touchAction='none';
-  touchCanvas.addEventListener('pointerdown',e=>{
-   if(e.pointerType!=='touch')return;
-   e.preventDefault();e.stopImmediatePropagation();
-   touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   try{touchCanvas.setPointerCapture(e.pointerId);}catch(_){}
-   if(touchPointers.size===2){const p=[...touchPointers.values()];pinchStartDistance=Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y));pinchStartCameraDistance=Math.max(camera.position.distanceTo(controls.target),0.01);}
-  },{capture:true,passive:false});
-  touchCanvas.addEventListener('pointermove',e=>{
-   if(e.pointerType!=='touch'||!touchPointers.has(e.pointerId))return;
-   e.preventDefault();e.stopImmediatePropagation();
-   const prev=touchPointers.get(e.pointerId),next={x:e.clientX,y:e.clientY};touchPointers.set(e.pointerId,next);
-   if(touchPointers.size>=2){
-    const p=[...touchPointers.values()],pinchDistance=Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y));
-    if(pinchStartDistance>0){
-     const factor=Math.pow(pinchStartDistance/pinchDistance,0.45);
-     const dir=camera.position.clone().sub(controls.target);
-     const minD=Math.max(0.05,pinchStartCameraDistance*0.02),maxD=Math.min(1000000,pinchStartCameraDistance*20);
-     dir.setLength(THREE.MathUtils.clamp(pinchStartCameraDistance*factor,minD,maxD));
-     camera.position.copy(controls.target).add(dir);camera.lookAt(controls.target);
-    }
-   }else if(prev){
-    const dist=Math.max(camera.position.distanceTo(controls.target),0.01),scale=dist/Math.max(300,touchCanvas.clientHeight)*0.5;
-    const right=new THREE.Vector3().setFromMatrixColumn(camera.matrix,0),up=new THREE.Vector3().setFromMatrixColumn(camera.matrix,1);
-    const shift=right.multiplyScalar(-(next.x-prev.x)*scale).add(up.multiplyScalar((next.y-prev.y)*scale));
-    camera.position.add(shift);controls.target.add(shift);camera.lookAt(controls.target);
-   }
-  },{capture:true,passive:false});
-  const endTouch=e=>{
-   if(e.pointerType!=='touch')return;
-   e.preventDefault();e.stopImmediatePropagation();touchPointers.delete(e.pointerId);pinchStartDistance=0;
-   if(touchPointers.size===2){const p=[...touchPointers.values()];pinchStartDistance=Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y));pinchStartCameraDistance=Math.max(camera.position.distanceTo(controls.target),0.01);}
-  };
-  touchCanvas.addEventListener('pointerup',endTouch,{capture:true,passive:false});
-  touchCanvas.addEventListener('pointercancel',endTouch,{capture:true,passive:false});
   controls.addEventListener('start',()=>{});
   controls.addEventListener('end',()=>{if(camera&&controls){camera.lookAt(controls.target);}});
   scene.add(new THREE.HemisphereLight(0xffffff,0x5b4b37,2));
