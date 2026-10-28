@@ -319,15 +319,15 @@ async function boot(){
   const initOrientationCube=()=>{
    const el=$('viewCubeCanvas');orientationScene=new THREE.Scene();
    orientationCamera=new THREE.PerspectiveCamera(34,1,.1,100);orientationCamera.position.set(3.4,3.1,4.2);orientationCamera.lookAt(0,0,0);
-   orientationRenderer=new THREE.WebGLRenderer({canvas:el,alpha:true,antialias:true});orientationRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));orientationRenderer.setSize(180,180,false);orientationRenderer.outputColorSpace=THREE.SRGBColorSpace;
+   orientationRenderer=new THREE.WebGLRenderer({canvas:el,alpha:true,antialias:true,preserveDrawingBuffer:false});orientationRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));orientationRenderer.setSize(180,180,false);orientationRenderer.setClearColor(0x000000,0);orientationRenderer.outputColorSpace=THREE.SRGBColorSpace;
    const faces=['RIGHT','LEFT','TOP','BOTTOM','FRONT','BACK'];
    const colors=['#5a4931','#30291f','#8b7048','#403526','#6e5737','#28231d'];
-   const materials=faces.map((label,i)=>{const c=document.createElement('canvas');c.width=256;c.height=256;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,256,256);g.addColorStop(0,colors[i]);g.addColorStop(1,'#171614');x.fillStyle=g;x.fillRect(0,0,256,256);x.strokeStyle='#f1d29b';x.lineWidth=7;x.strokeRect(5,5,246,246);x.fillStyle='#fff0d2';x.font='bold 31px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText(label,128,128);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return new THREE.MeshStandardMaterial({map:tex,roughness:.58,metalness:.18});});
-   orientationCube=new THREE.Mesh(new THREE.BoxGeometry(1.55,1.55,1.55),materials);orientationScene.add(orientationCube);
+   const materials=faces.map((label,i)=>{const c=document.createElement('canvas');c.width=256;c.height=256;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,256,256);g.addColorStop(0,colors[i]);g.addColorStop(1,'#171614');x.fillStyle=g;x.fillRect(0,0,256,256);x.strokeStyle='#f1d29b';x.lineWidth=7;x.strokeRect(5,5,246,246);x.fillStyle='#fff0d2';x.font='bold 31px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText(label,128,128);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;return new THREE.MeshStandardMaterial({map:tex,roughness:.42,metalness:.12,side:THREE.FrontSide});});
+   orientationCube=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.8,1.8),materials);orientationCube.rotation.set(THREE.MathUtils.degToRad(24),THREE.MathUtils.degToRad(32),0);orientationScene.add(orientationCube);
    orientationScene.add(new THREE.HemisphereLight(0xffffff,0x46341f,2.4));const light=new THREE.DirectionalLight(0xffe2ad,3.2);light.position.set(4,6,5);orientationScene.add(light);
    orientationRaycaster=new THREE.Raycaster();
   };
-  const syncViewCube=()=>{if(!camera||!controls||!orientationCube||!orientationRenderer)return;orientationCube.quaternion.copy(camera.quaternion).invert();orientationRenderer.render(orientationScene,orientationCamera);};
+  const cubeBaseRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(24),THREE.MathUtils.degToRad(32),0));const syncViewCube=()=>{if(!camera||!controls||!orientationCube||!orientationRenderer)return;orientationCube.quaternion.copy(camera.quaternion).invert().multiply(cubeBaseRotation);orientationCube.updateMatrixWorld(true);orientationRenderer.clear();orientationRenderer.render(orientationScene,orientationCamera);};
   initOrientationCube();const animate=()=>{requestAnimationFrame(animate);controls.update();syncViewCube();renderer.render(scene,camera)};animate();
   engineState.textContent='Motor 3D listo';$('fallback').style.display='none';
    $('modelState').textContent='Escena vacía · elige un plano';
