@@ -54,6 +54,14 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <div class="field"><label for="colorInput">Material</label><input id="colorInput" type="color" value="#c9a56c" style="width:100%;height:42px;background:#121211;border:1px solid var(--line);border-radius:7px;padding:4px"></div>
 <button class="full" id="applyColor">Aplicar material</button>
 <div class="divider"></div>
+<h2>BOCETO Y EXTRUSIÓN</h2>
+<div class="field"><label for="sketchShape">Perfil 2D</label><select id="sketchShape"><option value="rect">Rectángulo</option><option value="circle">Círculo</option></select></div>
+<div class="field"><label for="sketchWidth">Ancho / diámetro (mm)</label><input id="sketchWidth" type="number" min="1" max="10000" value="100"></div>
+<div class="field"><label for="sketchHeight">Alto (mm, rectángulo)</label><input id="sketchHeight" type="number" min="1" max="10000" value="60"></div>
+<div class="field"><label for="extrudeDepth">Profundidad de extrusión (mm)</label><input id="extrudeDepth" type="number" min="1" max="10000" value="30"></div>
+<button class="primary full" id="createExtrusion">Crear boceto y extruir</button>
+<p class="help">Crea un perfil rectangular o circular y lo convierte en un sólido 3D. Las medidas se pueden cambiar antes de cada operación.</p>
+<div class="divider"></div>
 <h2>INFORMACIÓN</h2><div class="help" id="modelInfo">No hay archivo STL importado.</div>
 <div class="divider"></div><div class="help">Importa un STL para visualizarlo. Arrastra con un dedo para orbitar; pellizca para acercar/alejar. Usa el ratón para controles de escritorio.</div>
 </aside>
@@ -136,6 +144,22 @@ $('fileInput').addEventListener('change',async e=>{
 $('importPanel').onclick=()=>$('fileInput').click();
 $('panelToggle').onclick=()=>$('panel').classList.toggle('open');
 $('resetView').onclick=()=>{if(currentModel)frameObject(currentModel);else{camera.position.set(180,140,190);controls.target.set(0,0,0);controls.update();}};
+$('createExtrusion').onclick=()=>{
+ if(!THREE||!scene){status('El motor 3D todavía no está listo.',true);return;}
+ const w=Number($('sketchWidth').value),h=Number($('sketchHeight').value),d=Number($('extrudeDepth').value);
+ if(![w,h,d].every(v=>Number.isFinite(v)&&v>0)){status('Las dimensiones deben ser números mayores que cero.',true);return;}
+ try{
+  const shape=new THREE.Shape();
+  if($('sketchShape').value==='circle'){shape.absarc(0,0,w/2,0,Math.PI*2,false);}
+  else{shape.moveTo(-w/2,-h/2);shape.lineTo(w/2,-h/2);shape.lineTo(w/2,h/2);shape.lineTo(-w/2,h/2);shape.closePath();}
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:false,curveSegments:48});
+  geometry.computeVertexNormals();
+  const material=new THREE.MeshStandardMaterial({color:$('colorInput').value,metalness:.1,roughness:.58});
+  const solid=new THREE.Mesh(geometry,material);solid.castShadow=true;solid.receiveShadow=true;
+  setModel(solid,($('sketchShape').value==='circle'?'Extrusión circular ':'Extrusión rectangular ')+w+' × '+($('sketchShape').value==='circle'?w:h)+' × '+d+' mm');
+  status('Boceto creado y extruido correctamente.');
+ }catch(err){console.error(err);status('No se pudo crear la extrusión: '+err.message,true);}
+};
 $('demoBtn').onclick=makeDemo;
 $('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
 $('applyColor').onclick=()=>{if(!currentModel)return;currentModel.traverse(o=>{if(o.isMesh){o.material.color.set($('colorInput').value);o.material.needsUpdate=true;}});status('Material actualizado.');};
