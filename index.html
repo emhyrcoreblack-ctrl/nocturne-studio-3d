@@ -74,6 +74,28 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <div class="divider"></div><div class="help">Importa un STL para visualizarlo. Arrastra con un dedo para orbitar; pellizca para acercar/alejar. Usa el ratón para controles de escritorio.</div>
 </aside>
 </main>
+<script>
+(function(){
+ const started=Date.now();
+ window.addEventListener('error',function(e){
+  const s=document.getElementById('status');
+  if(s){s.textContent='ERROR JAVASCRIPT: '+(e.message||'error desconocido')+' ('+(e.filename||'sin archivo')+':'+(e.lineno||'?')+')';s.classList.add('error');}
+ });
+ window.addEventListener('unhandledrejection',function(e){
+  const s=document.getElementById('status');
+  const reason=e.reason&&e.reason.message?e.reason.message:String(e.reason||'promesa rechazada');
+  if(s){s.textContent='ERROR DE CARGA: '+reason;s.classList.add('error');}
+ });
+ window.setTimeout(function(){
+  const state=document.getElementById('engineState');
+  const s=document.getElementById('status');
+  if(state&&/Iniciando/i.test(state.textContent)&&s){
+   s.textContent='DIAGNÓSTICO: el módulo 3D no terminó de iniciar en 15 s. Recarga esta página; si se repite, envía esta captura.';
+   s.classList.add('error');
+  }
+ },15000);
+})();
+</script>
 <script type="module">
 const $=id=>document.getElementById(id);
 const status=(msg,error=false)=>{$('status').textContent=msg;$('status').classList.toggle('error',error)};
