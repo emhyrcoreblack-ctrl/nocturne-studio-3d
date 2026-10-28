@@ -59,6 +59,16 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
  <button type="button" data-plane="YZ">YZ · Lateral</button>
  <span class="plane-note" id="planeNote">Selecciona XY, XZ o YZ para orientar el visor</span>
 </div>
+<div id="viewGizmo" aria-label="Control de orientación de la vista">
+ <button type="button" class="orbit-lock" id="orbitLock" aria-pressed="false" aria-label="Bloquear rotación de cámara" title="Bloquear o permitir rotación"><span id="lockIcon">♙</span></button>
+ <svg id="viewCube" viewBox="0 0 110 110" role="group" aria-label="Cubo de orientación: toca una cara para cambiar la vista">
+  <polygon class="cube-face" data-view="XZ" tabindex="0" role="button" aria-label="Vista frontal XZ" points="12,35 55,11 98,35 55,60"/>
+  <polygon class="cube-face" data-view="YZ" tabindex="0" role="button" aria-label="Vista derecha YZ" points="12,35 55,60 55,103 12,78"/>
+  <polygon class="cube-face" data-view="XY" tabindex="0" role="button" aria-label="Vista superior XY" points="55,60 98,35 98,78 55,103"/>
+  <text x="55" y="34">Top</text><text x="31" y="66">Front</text><text x="76" y="70">Right</text>
+  <text class="axis axis-z" x="5" y="20">Z</text><text class="axis axis-x" x="101" y="99">X</text><text class="axis axis-y" x="17" y="92">Y</text>
+ </svg>
+</div>
 <div id="fallback"></div>
 <div id="status" role="status">Preparando escena 3D…</div>
 </section>
