@@ -23,6 +23,19 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 .full{width:100%;margin:4px 0}.help{font-size:12px;line-height:1.5;color:var(--muted)}#fileInput{display:none}.divider{height:1px;background:#42372a;margin:15px 0}
 @media(max-width:720px){header{padding:10px;align-items:flex-start}.brand{font-size:14px}.sub{font-size:9px}.actions{gap:5px}button,.filelabel{padding:9px 10px;font-size:12px;min-height:38px}main{grid-template-columns:1fr;height:calc(100dvh - 82px);padding:7px;gap:7px}aside{position:absolute;z-index:4;right:14px;top:92px;width:min(260px,calc(100vw - 28px));max-height:72dvh;box-shadow:0 8px 32px #0009;display:none}aside.open{display:block}#viewport{grid-row:1;min-height:0}#panelToggle{display:inline-block}}
 @media(min-width:721px){#panelToggle{display:none}}
+
+/* Gizmo de orientación estilo CAD */
+#viewGizmo{position:absolute;z-index:3;top:72px;right:10px;width:112px;display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:auto;filter:drop-shadow(0 3px 8px #0008)}
+#viewGizmo .orbit-lock{width:64px;height:64px;border:1px solid #8c7049;border-radius:50%;background:#171614eF;color:var(--gold);font-size:25px;display:grid;place-items:center;position:relative;padding:0;min-height:0}
+#viewGizmo .orbit-lock:before{content:'↻';position:absolute;inset:2px;border:1px solid #8c704977;border-radius:50%;font-size:48px;line-height:52px;color:#d2ad73aa;pointer-events:none}
+#viewGizmo .orbit-lock span{position:relative;background:#171614;padding:0 4px;border-radius:5px}
+#viewCube{width:108px;height:108px;overflow:visible}
+#viewCube .cube-face{fill:#22272dcc;stroke:#d2ad73;stroke-width:1.2;cursor:pointer;transition:fill .15s,stroke .15s}
+#viewCube .cube-face:hover,#viewCube .cube-face:focus{fill:#b68b4fdd;stroke:#fff0cf;stroke-width:2.5;outline:none}
+#viewCube text{fill:#f4efe6;font:12px system-ui,sans-serif;pointer-events:none;text-anchor:middle}
+#viewCube .axis{font:bold 12px system-ui,sans-serif}
+#viewCube .axis-x{fill:#ff5d55}#viewCube .axis-y{fill:#80d96d}#viewCube .axis-z{fill:#5c8dff}
+@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:84px;height:84px}#viewCube text{font-size:11px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.180.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.180.0/examples/jsm/"}}
@@ -348,6 +361,8 @@ function installSketchPointerHandlers(){
 }
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,true)));
+ document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=()=>chooseWorkPlane(face.dataset.view,true);face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});});
+ $('orbitLock').addEventListener('click',()=>{if(!controls)return;controls.enableRotate=!controls.enableRotate;const locked=!controls.enableRotate;$('orbitLock').setAttribute('aria-pressed',String(locked));$('orbitLock').setAttribute('aria-label',locked?'Permitir rotación de cámara':'Bloquear rotación de cámara');$('lockIcon').textContent=locked?'🔒':'♙';status(locked?'Rotación de cámara bloqueada.':'Rotación de cámara activada.');});
 $('workPlane').addEventListener('change',()=>chooseWorkPlane($('workPlane').value,false));
 
 $('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
