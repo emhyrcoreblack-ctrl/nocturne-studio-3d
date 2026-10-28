@@ -29,16 +29,16 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewGizmo .orbit-lock{width:64px;height:64px;border:1px solid #8c7049;border-radius:50%;background:#171614eF;color:var(--gold);font-size:25px;display:grid;place-items:center;position:relative;padding:0;min-height:0}
 #viewGizmo .orbit-lock:before{content:'↻';position:absolute;inset:2px;border:1px solid #8c704977;border-radius:50%;font-size:48px;line-height:52px;color:#d2ad73aa;pointer-events:none}
 #viewGizmo .orbit-lock span{position:relative;background:#171614;padding:0 4px;border-radius:5px}
-#viewCube{width:76px;height:76px;position:relative;overflow:visible;transform-style:preserve-3d;cursor:pointer;touch-action:manipulation}
-#viewCube .cube-face{position:absolute;inset:0;width:76px;height:76px;min-height:0;padding:0;display:grid;place-items:center;border:1px solid #f1d29b;border-radius:3px;background:linear-gradient(145deg,#4a4030ee,#1b1a19f5);color:#fff0d2;font-size:11px;font-weight:650;letter-spacing:.2px;box-shadow:inset 0 0 18px #d2ad7320;backface-visibility:visible}
+#viewCube{width:68px;height:68px;position:relative;overflow:visible;perspective:360px;perspective-origin:50% 50%;transform-style:preserve-3d;cursor:pointer;touch-action:manipulation;isolation:isolate}
+#viewCube .cube-face{position:absolute;left:0;top:0;width:68px;height:68px;min-height:0;padding:0;display:grid;place-items:center;border:1.5px solid #f1d29b;border-radius:2px;background:linear-gradient(145deg,#756044 0%,#393026 45%,#191817 100%);color:#fff0d2;font-size:10px;font-weight:700;letter-spacing:.2px;box-shadow:inset 0 0 12px #e4c38a24,0 1px 2px #0009;backface-visibility:hidden;transform-style:preserve-3d}
 #viewCube .cube-face:hover,#viewCube .cube-face:focus{background:linear-gradient(145deg,#b68b4fee,#56432b);border-color:#fff0cf;outline:1px solid #fff0cf}
-#viewCube .face-front{transform:translateZ(38px)}
-#viewCube .face-back{transform:rotateY(180deg) translateZ(38px)}
-#viewCube .face-right{transform:rotateY(90deg) translateZ(38px)}
-#viewCube .face-left{transform:rotateY(-90deg) translateZ(38px)}
-#viewCube .face-top{transform:rotateX(90deg) translateZ(38px)}
-#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(38px)}
-@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:64px;height:64px}#viewCube .cube-face{width:64px;height:64px;font-size:10px}#viewCube .face-front{transform:translateZ(32px)}#viewCube .face-back{transform:rotateY(180deg) translateZ(32px)}#viewCube .face-right{transform:rotateY(90deg) translateZ(32px)}#viewCube .face-left{transform:rotateY(-90deg) translateZ(32px)}#viewCube .face-top{transform:rotateX(90deg) translateZ(32px)}#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(32px)}}
+#viewCube .face-front{transform:translateZ(34px)}
+#viewCube .face-back{transform:rotateY(180deg) translateZ(34px)}
+#viewCube .face-right{transform:rotateY(90deg) translateZ(34px)}
+#viewCube .face-left{transform:rotateY(-90deg) translateZ(34px)}
+#viewCube .face-top{transform:rotateX(90deg) translateZ(34px)}
+#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(34px)}
+@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:58px;height:58px;perspective:300px}#viewCube .cube-face{width:58px;height:58px;font-size:9px}#viewCube .face-front{transform:translateZ(29px)}#viewCube .face-back{transform:rotateY(180deg) translateZ(29px)}#viewCube .face-right{transform:rotateY(90deg) translateZ(29px)}#viewCube .face-left{transform:rotateY(-90deg) translateZ(29px)}#viewCube .face-top{transform:rotateX(90deg) translateZ(29px)}#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(29px)}}
 
 #viewGizmo{z-index:20}
 #viewCube{cursor:pointer;touch-action:manipulation}
@@ -407,21 +407,20 @@ let drawRaycaster=null, drawNdc=null;
 function installSketchPointerHandlers(){
  if(!renderer||!THREE||drawRaycaster)return;
  drawRaycaster=new THREE.Raycaster();drawNdc=new THREE.Vector2();
- renderer.domElement.addEventListener('pointerdown',e=>{
-  if(!drawingSketch&&e.button===0){
-   const rect=renderer.domElement.getBoundingClientRect();if(!rect.width||!rect.height)return;
-   drawNdc.x=((e.clientX-rect.left)/rect.width)*2-1;drawNdc.y=-((e.clientY-rect.top)/rect.height)*2+1;
-   drawRaycaster.setFromCamera(drawNdc,camera);
-   const hits=drawRaycaster.intersectObjects(Object.values(workPlaneMeshes),false);
-   if(hits.length){const key=hits[0].object.userData.workPlaneKey;if(key)chooseWorkPlane(key,true);}
-   return;
-  }
-  if(!drawingSketch||e.button!==0)return;
-  const rect=renderer.domElement.getBoundingClientRect();
-  if(!rect.width||!rect.height)return;
+ let planeTapStart=null;
+ const setRay=(e)=>{
+  const rect=renderer.domElement.getBoundingClientRect();if(!rect.width||!rect.height)return false;
   drawNdc.x=((e.clientX-rect.left)/rect.width)*2-1;
   drawNdc.y=-((e.clientY-rect.top)/rect.height)*2+1;
-  drawRaycaster.setFromCamera(drawNdc,camera);
+  drawRaycaster.setFromCamera(drawNdc,camera);return true;
+ };
+ renderer.domElement.addEventListener('pointerdown',e=>{
+  if(!drawingSketch){
+   if(e.button===0)planeTapStart={x:e.clientX,y:e.clientY,id:e.pointerId};
+   return;
+  }
+  if(e.button!==0)return;
+  if(!setRay(e))return;
   const hit=new THREE.Vector3();
   if(drawRaycaster.ray.intersectPlane(activeSketchPlane(),hit)){
    const pt=worldToSketch(hit);
@@ -430,6 +429,21 @@ function installSketchPointerHandlers(){
    status('Punto '+sketchPoints.length+' añadido al boceto.');
   }
  });
+ renderer.domElement.addEventListener('pointerup',e=>{
+  if(drawingSketch||!planeTapStart||planeTapStart.id!==e.pointerId)return;
+  const start=planeTapStart;planeTapStart=null;
+  if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>12)return;
+  if(!setRay(e))return;
+  const planes=Object.values(workPlaneMeshes);if(!planes.length)return;
+  drawRaycaster.params.Line.threshold=3;
+  const hits=drawRaycaster.intersectObjects(planes,false);
+  if(hits.length){
+   // Elegir la superficie visible más cercana al dedo, sin que OrbitControls convierta un toque en un giro.
+   const hit=hits[0],key=hit.object.userData.workPlaneKey;
+   if(key){e.preventDefault();chooseWorkPlane(key,true);}
+  }
+ });
+ renderer.domElement.addEventListener('pointercancel',()=>{planeTapStart=null;});
  renderer.domElement.addEventListener('dblclick',e=>{if(drawingSketch){e.preventDefault();finishSketch();}});
 }
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
