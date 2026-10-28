@@ -165,10 +165,14 @@ function updatePlaneAppearance(){
  const selected=$('workPlane').value;
  document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.classList.toggle('active',b.dataset.plane===selected));
  for(const [key,mesh] of Object.entries(workPlaneMeshes)){
-  mesh.material.opacity = (key === selected) ? 0.30 : 0.018;
-  mesh.material.color.set(key===selected?0xd2ad73:0x65717d);
+  mesh.material.opacity = (key === selected) ? 0.22 : 0.075;
+  mesh.material.color.set(key===selected?0xd2ad73:0x7696b5);
   mesh.material.needsUpdate=true;
-  const edge=workPlaneEdges[key];if(edge){edge.material.color.set(key===selected?0xf1c987:0x59616a);edge.material.opacity=key===selected?1:0.20;edge.material.needsUpdate=true;}
+  const edge=workPlaneEdges[key];if(edge){edge.material.color.set(key===selected?0xffd995:0x8daac7);edge.material.opacity=key===selected?1:0.72;edge.material.needsUpdate=true;}
+  const gridLines=workPlaneMeshes[key].userData.gridLines;
+  if(gridLines){gridLines.material.color.set(key===selected?0xd8b477:0x7189a0);gridLines.material.opacity=key===selected?0.62:0.26;gridLines.material.needsUpdate=true;}
+  const label=workPlaneMeshes[key].userData.label;
+  if(label){label.material.opacity=key===selected?1:0.78;label.material.color.set(key===selected?0xffdfaa:0xc2d5e8);}
  }
 }
 function createWorkPlanes(){
@@ -179,10 +183,26 @@ function createWorkPlanes(){
  ];
  for(const [key,rotation] of defs){
   const geo=new THREE.PlaneGeometry(220,220);
-  const mat=new THREE.MeshBasicMaterial({color:0x8295a8,transparent:true,opacity:.055,side:THREE.DoubleSide,depthWrite:false});
+  const mat=new THREE.MeshBasicMaterial({color:0x7696b5,transparent:true,opacity:.075,side:THREE.DoubleSide,depthWrite:false});
   const mesh=new THREE.Mesh(geo,mat);mesh.rotation.set(rotation.x,rotation.y,rotation.z);mesh.renderOrder=1;scene.add(mesh);
-  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x8b795f,transparent:true,opacity:.5,depthWrite:false}));
-  edges.rotation.copy(mesh.rotation);edges.renderOrder=2;scene.add(edges);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x8daac7,transparent:true,opacity:.72,depthTest:false,depthWrite:false}));
+  edges.rotation.copy(mesh.rotation);edges.renderOrder=3;scene.add(edges);
+  // Rejilla propia del plano (en coordenadas locales) para que los tres planos se lean como en un CAD.
+  const gridPositions=[];
+  for(let n=-100;n<=100;n+=20){
+   gridPositions.push(-110,n,0,110,n,0,n,-110,0,n,110,0);
+  }
+  const gridGeo=new THREE.BufferGeometry();
+  gridGeo.setAttribute('position',new THREE.Float32BufferAttribute(gridPositions,3));
+  const gridLines=new THREE.LineSegments(gridGeo,new THREE.LineBasicMaterial({color:0x7189a0,transparent:true,opacity:.26,depthTest:false,depthWrite:false}));
+  gridLines.rotation.copy(mesh.rotation);gridLines.renderOrder=2;scene.add(gridLines);
+  // Etiqueta orientada sobre la propia superficie del plano.
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
+  const ctx=canvas.getContext('2d');ctx.font='bold 38px system-ui, sans-serif';ctx.fillStyle='#c2d5e8';ctx.fillText(({XY:'SUPERIOR (XY)',XZ:'FRONTAL (XZ)',YZ:'DERECHO (YZ)'})[key],12,61);
+  const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+  const label=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
+  label.scale.set(92,17,1);label.position.set(-48,-82,1);label.rotation.copy(mesh.rotation);label.renderOrder=4;scene.add(label);
+  mesh.userData.gridLines=gridLines;mesh.userData.label=label;
   workPlaneMeshes[key]=mesh;workPlaneEdges[key]=edges;
  }
  updatePlaneAppearance();
@@ -293,7 +313,7 @@ async function boot(){
   scene.add(new THREE.HemisphereLight(0xffffff,0x5b4b37,2));
   const key=new THREE.DirectionalLight(0xffe0b0,3);key.position.set(120,180,140);scene.add(key);
   const fill=new THREE.DirectionalLight(0xffffff,1.1);fill.position.set(-100,50,-120);scene.add(fill);
-  grid=new THREE.GridHelper(500,25,0x8e744d,0x39332a);scene.add(grid);
+  // La rejilla se dibuja sobre cada plano de referencia; una rejilla mundial única parecía otro plano vertical.
    createWorkPlanes();
   const axes=new THREE.AxesHelper(70);scene.add(axes);
   const resize=()=>{const w=$('canvasHost').clientWidth,h=$('canvasHost').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
@@ -396,7 +416,7 @@ function installSketchPointerHandlers(){
  renderer.domElement.addEventListener('dblclick',e=>{if(drawingSketch){e.preventDefault();finishSketch();}});
 }
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
-document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,true)));
+document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,false)));
  document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=()=>chooseWorkPlane(face.dataset.view,true);face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});});
  const viewMenu=$('viewMenu');
  $('viewCube').addEventListener('click',()=>{viewMenu.classList.toggle('open');});
