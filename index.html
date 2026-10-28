@@ -193,6 +193,7 @@ async function boot(){
   camera=new THREE.PerspectiveCamera(45,1,.1,100000);camera.position.set(180,140,190);
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   $('canvasHost').appendChild(renderer.domElement);
+  installSketchPointerHandlers();
   controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;
   scene.add(new THREE.HemisphereLight(0xffffff,0x5b4b37,2));
   const key=new THREE.DirectionalLight(0xffe0b0,3);key.position.set(120,180,140);scene.add(key);
@@ -274,22 +275,27 @@ $('extrudeSketchBtn').onclick=()=>{
   resetSketch();controls.enabled=true;status('Perfil libre extruido. Puedes continuar con otra operación.');
  }catch(err){status('No se pudo extruir el perfil: '+err.message,true);}
 };
-const drawRaycaster=new THREE.Raycaster(), drawNdc=new THREE.Vector2();
-renderer.domElement.addEventListener('pointerdown',e=>{
- if(!drawingSketch||e.button!==0)return;
- const rect=renderer.domElement.getBoundingClientRect();
- drawNdc.x=((e.clientX-rect.left)/rect.width)*2-1;
- drawNdc.y=-((e.clientY-rect.top)/rect.height)*2+1;
- drawRaycaster.setFromCamera(drawNdc,camera);
- const hit=new THREE.Vector3();
- if(drawRaycaster.ray.intersectPlane(activeSketchPlane(),hit)){
-  const pt=worldToSketch(hit);
-  if(sketchPoints.length>2&&pt.distanceTo(sketchPoints[0])<2){finishSketch();return;}
-  sketchPoints.push(pt);refreshSketchLine(false);
-  status('Punto '+sketchPoints.length+' añadido al boceto.');
- }
-});
-renderer.domElement.addEventListener('dblclick',e=>{if(drawingSketch){e.preventDefault();finishSketch();}});
+let drawRaycaster=null, drawNdc=null;
+function installSketchPointerHandlers(){
+ if(!renderer||!THREE||drawRaycaster)return;
+ drawRaycaster=new THREE.Raycaster();drawNdc=new THREE.Vector2();
+ renderer.domElement.addEventListener('pointerdown',e=>{
+  if(!drawingSketch||e.button!==0)return;
+  const rect=renderer.domElement.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  drawNdc.x=((e.clientX-rect.left)/rect.width)*2-1;
+  drawNdc.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  drawRaycaster.setFromCamera(drawNdc,camera);
+  const hit=new THREE.Vector3();
+  if(drawRaycaster.ray.intersectPlane(activeSketchPlane(),hit)){
+   const pt=worldToSketch(hit);
+   if(sketchPoints.length>2&&pt.distanceTo(sketchPoints[0])<2){finishSketch();return;}
+   sketchPoints.push(pt);refreshSketchLine(false);
+   status('Punto '+sketchPoints.length+' añadido al boceto.');
+  }
+ });
+ renderer.domElement.addEventListener('dblclick',e=>{if(drawingSketch){e.preventDefault();finishSketch();}});
+}
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 $('demoBtn').onclick=makeDemo;
 $('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
