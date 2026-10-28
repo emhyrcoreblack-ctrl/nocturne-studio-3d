@@ -449,11 +449,14 @@ function installSketchPointerHandlers(){
 }
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,false)));
+ const viewMenu=$('viewMenu');
+ if(!viewMenu){throw new Error('No se encontró el menú de perspectivas (#viewMenu).');}
  document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=e=>{e.stopPropagation();chooseWorkPlane(face.dataset.view,true);viewMenu.classList.add('open');};face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();chooseWorkPlane(face.dataset.view,true);viewMenu.classList.add('open');}});});
  const cubeCanvas=$('viewCubeCanvas');
- cubeCanvas.addEventListener('pointerdown',e=>{e.stopPropagation();});
- cubeCanvas.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();viewMenu.classList.add('open');});
- const viewMenu=$('viewMenu');
+ if(cubeCanvas){
+  cubeCanvas.addEventListener('pointerdown',e=>{e.stopPropagation();});
+  cubeCanvas.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();viewMenu.classList.add('open');});
+ }
  $('viewCube').addEventListener('click',e=>{if(e.target=== $('viewCube'))viewMenu.classList.add('open');});
  $('viewCube').setAttribute('role','button');$('viewCube').setAttribute('tabindex','0');$('viewCube').setAttribute('aria-label','Abrir lista de orientaciones y perspectiva');
  $('viewCube').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();viewMenu.classList.toggle('open');}});
