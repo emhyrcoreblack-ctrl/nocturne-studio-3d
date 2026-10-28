@@ -14,7 +14,7 @@ header{height:auto;min-height:76px;padding:12px 16px;display:flex;align-items:ce
 main{height:calc(100dvh - 80px);display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:10px;padding:10px}
 #viewport{position:relative;min-width:0;min-height:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at center,#262522,#111110 80%)}
 #canvasHost{position:absolute;inset:0}#canvasHost canvas{display:block;width:100%;height:100%;touch-action:none}
-#planePicker{position:absolute;z-index:2;top:62px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}#planePicker button{font-size:12px;min-height:34px;padding:7px 10px;background:#171614dd}#planePicker button.active{background:var(--gold);color:#211a11;border-color:#e5c795;font-weight:700}.plane-note{font-size:11px;color:var(--muted);align-self:center;padding:5px}
+#planePicker{position:absolute;z-index:2;top:62px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}#planePicker button{font-size:12px;min-height:34px;padding:7px 10px;background:#171614dd}#planePicker button.active{background:var(--gold);color:#211a11;border:2px solid #fff0cf;box-shadow:0 0 0 3px #d2ad7355,0 0 18px #d2ad73aa;font-weight:800;transform:translateY(-1px)}#planePicker button:focus-visible{outline:3px solid #fff0cf;outline-offset:3px}.plane-note{font-size:11px;color:var(--muted);align-self:center;padding:5px}
 #hud{position:absolute;left:12px;right:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}.pill{background:#111d;color:#d7c5a9;border:1px solid #59472e;border-radius:7px;padding:7px 10px;font-size:12px}
 #status{position:absolute;bottom:12px;left:12px;right:12px;background:#111d;border:1px solid #39332a;padding:10px 12px;border-radius:8px;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 #status.error{color:var(--danger);border-color:#77443d}
@@ -39,12 +39,12 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <main>
 <section id="viewport" aria-label="Escena 3D">
 <div id="canvasHost"></div>
-<div id="hud"><span class="pill" id="engineState">Iniciando motor 3D…</span><span class="pill" id="modelState">Modelo de demostración</span></div>
+<div id="hud"><span class="pill" id="engineState">Iniciando motor 3D…</span><span class="pill" id="modelState">Escena vacía · elige un plano</span></div>
 <div id="planePicker" aria-label="Elegir plano de trabajo">
  <button type="button" data-plane="XY" class="active">XY · Superior</button>
  <button type="button" data-plane="XZ">XZ · Frontal</button>
  <button type="button" data-plane="YZ">YZ · Lateral</button>
- <span class="plane-note">Elige un plano para empezar el boceto</span>
+ <span class="plane-note" id="planeNote">Selecciona XY, XZ o YZ para orientar el visor</span>
 </div>
 <div id="fallback"></div>
 <div id="status" role="status">Preparando escena 3D…</div>
@@ -53,7 +53,7 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <h2>MODELO Y ESCENA</h2>
 <button class="primary full" id="importPanel">＋ Importar archivo STL</button>
 <button class="full" id="resetView">Centrar vista</button>
-<button class="full" id="demoBtn">Crear cubo de prueba</button>
+
 <div class="divider"></div>
 <h2>TRANSFORMACIÓN</h2>
 <div class="field"><label for="scaleInput">Escala uniforme</label><input id="scaleInput" type="number" min="0.001" max="1000" step="0.1" value="1"></div>
@@ -111,14 +111,15 @@ let THREE, scene, camera, renderer, controls, STLLoader, STLExporter, currentMod
 const operationHistory=[];
 let drawingSketch=false, sketchPoints=[], sketchLine=null, sketchPlaneMesh=null;
 const raycasterRef={current:null};
-let workPlaneMeshes={};
+let workPlaneMeshes={}, workPlaneEdges={};
 function updatePlaneAppearance(){
  const selected=$('workPlane').value;
  document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.classList.toggle('active',b.dataset.plane===selected));
  for(const [key,mesh] of Object.entries(workPlaneMeshes)){
-  mesh.material.opacity = (key === selected) ? 0.19 : 0.055;
-  mesh.material.color.set(key===selected?0xd2ad73:0x8295a8);
+  mesh.material.opacity = (key === selected) ? 0.30 : 0.018;
+  mesh.material.color.set(key===selected?0xd2ad73:0x65717d);
   mesh.material.needsUpdate=true;
+  const edge=workPlaneEdges[key];if(edge){edge.material.color.set(key===selected?0xf1c987:0x59616a);edge.material.opacity=key===selected?1:0.20;edge.material.needsUpdate=true;}
  }
 }
 function createWorkPlanes(){
@@ -133,7 +134,7 @@ function createWorkPlanes(){
   const mesh=new THREE.Mesh(geo,mat);mesh.rotation.set(rotation.x,rotation.y,rotation.z);mesh.renderOrder=1;scene.add(mesh);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x8b795f,transparent:true,opacity:.5,depthWrite:false}));
   edges.rotation.copy(mesh.rotation);edges.renderOrder=2;scene.add(edges);
-  workPlaneMeshes[key]=mesh;
+  workPlaneMeshes[key]=mesh;workPlaneEdges[key]=edges;
  }
  updatePlaneAppearance();
 }
@@ -146,7 +147,8 @@ function chooseWorkPlane(key,orientCamera=true){
   else {camera.up.set(0,1,0);camera.position.set(distance,0,0);}
   controls.target.set(0,0,0);camera.lookAt(0,0,0);controls.update();
  }
- status('Plano '+key+' seleccionado. Puedes crear un perfil o dibujar el boceto.');
+ const note=$('planeNote');if(note)note.textContent='Plano '+key+' seleccionado · vista orientada para dibujar';
+  status('Plano '+key+' seleccionado. Ahora puedes crear un perfil o dibujar el boceto.');
 }
 function activeSketchPlane(){
  const p=$('workPlane').value;
@@ -248,7 +250,10 @@ async function boot(){
   const resize=()=>{const w=$('canvasHost').clientWidth,h=$('canvasHost').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
   new ResizeObserver(resize).observe($('canvasHost'));window.addEventListener('orientationchange',()=>setTimeout(resize,250));resize();
   const animate=()=>{requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)};animate();
-  engineState.textContent='Motor 3D listo';$('fallback').style.display='none';makeDemo();
+  engineState.textContent='Motor 3D listo';$('fallback').style.display='none';
+   $('modelState').textContent='Escena vacía · elige un plano';
+   $('modelInfo').textContent='No hay ningún sólido. Selecciona un plano y crea tu primera forma.';
+   status('Motor 3D listo. La escena está vacía: selecciona XY, XZ o YZ para empezar.');
  }catch(err){console.error('NOCTURNE engine init error',err);showFatal(err);}
 }
 $('fileInput').addEventListener('change',async e=>{
@@ -344,7 +349,7 @@ function installSketchPointerHandlers(){
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,true)));
 $('workPlane').addEventListener('change',()=>chooseWorkPlane($('workPlane').value,false));
-$('demoBtn').onclick=makeDemo;
+
 $('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
 $('applyColor').onclick=()=>{if(!currentModel)return;currentModel.traverse(o=>{if(o.isMesh){o.material.color.set($('colorInput').value);o.material.needsUpdate=true;}});status('Material actualizado.');};
 $('exportBtn').onclick=()=>{if(!currentModel||!STLExporter){status('No hay un modelo listo para exportar.',true);return;}try{currentModel.updateMatrixWorld(true);const data=new STLExporter().parse(currentModel,{binary:true});const blob=new Blob([data],{type:'model/stl'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nocturne-modelo.stl';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);status('Exportación STL iniciada.');}catch(err){status('Error al exportar: '+err.message,true);}};
