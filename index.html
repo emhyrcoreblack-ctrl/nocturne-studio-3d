@@ -64,6 +64,10 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <div class="field"><label for="sketchHeight">Alto (mm, rectángulo)</label><input id="sketchHeight" type="number" min="1" max="10000" value="60"></div>
 <div class="field"><label for="extrudeDepth">Profundidad de extrusión (mm)</label><input id="extrudeDepth" type="number" min="1" max="10000" value="30"></div>
 <button class="primary full" id="createExtrusion">Crear boceto y extruir</button>
+<button class="full" id="drawModeBtn">✎ Dibujar perfil en el plano</button>
+<button class="full" id="finishSketchBtn" disabled>Cerrar boceto (doble toque también)</button>
+<button class="primary full" id="extrudeSketchBtn" disabled>Extruir perfil dibujado</button>
+<p class="help">Activa el dibujo y toca varios puntos en el plano. Cierra el perfil para poder extruirlo. Para cancelar, vuelve a pulsar Dibujar.</p>
 <p class="help">Crea un perfil rectangular o circular y lo convierte en un sólido 3D. Las medidas se pueden cambiar antes de cada operación.</p>
 <div class="divider"></div>
 <h2>ÁRBOL DE OPERACIONES</h2><div id="operationTree" class="help">Todavía no hay operaciones.</div><div class="divider"></div><h2>INFORMACIÓN</h2><div class="help" id="modelInfo">No hay archivo STL importado.</div>
@@ -76,6 +80,49 @@ const status=(msg,error=false)=>{$('status').textContent=msg;$('status').classLi
 const engineState=$('engineState');
 let THREE, scene, camera, renderer, controls, STLLoader, STLExporter, currentModel=null, grid;
 const operationHistory=[];
+let drawingSketch=false, sketchPoints=[], sketchLine=null, sketchPlaneMesh=null;
+const raycasterRef={current:null};
+function activeSketchPlane(){
+ const p=$('workPlane').value;
+ if(p==='XZ') return new THREE.Plane(new THREE.Vector3(0,1,0),0);
+ if(p==='YZ') return new THREE.Plane(new THREE.Vector3(1,0,0),0);
+ return new THREE.Plane(new THREE.Vector3(0,0,1),0);
+}
+function worldToSketch(v){
+ const p=$('workPlane').value;
+ if(p==='XZ') return new THREE.Vector2(v.x,-v.z);
+ if(p==='YZ') return new THREE.Vector2(v.z,v.y);
+ return new THREE.Vector2(v.x,v.y);
+}
+function sketchToWorld(pt){
+ const p=$('workPlane').value;
+ if(p==='XZ') return new THREE.Vector3(pt.x,0,-pt.y);
+ if(p==='YZ') return new THREE.Vector3(0,pt.y,pt.x);
+ return new THREE.Vector3(pt.x,pt.y,0);
+}
+function refreshSketchLine(closed=false){
+ if(sketchLine){scene.remove(sketchLine);sketchLine.geometry.dispose();sketchLine.material.dispose();sketchLine=null;}
+ if(sketchPoints.length<2)return;
+ const pts=sketchPoints.map(sketchToWorld);
+ if(closed)pts.push(pts[0].clone());
+ const geo=new THREE.BufferGeometry().setFromPoints(pts);
+ sketchLine=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xf0c77b,depthTest:false}));
+ sketchLine.renderOrder=10;scene.add(sketchLine);
+}
+function resetSketch(){
+ drawingSketch=false;sketchPoints=[];
+ if(sketchLine){scene.remove(sketchLine);sketchLine.geometry.dispose();sketchLine.material.dispose();sketchLine=null;}
+ $('drawModeBtn').classList.remove('primary');$('drawModeBtn').textContent='✎ Dibujar perfil en el plano';
+ $('finishSketchBtn').disabled=true;$('extrudeSketchBtn').disabled=true;
+}
+function finishSketch(){
+ if(sketchPoints.length<3){status('Dibuja al menos tres puntos para cerrar un perfil.',true);return;}
+ drawingSketch=false;refreshSketchLine(true);
+ $('drawModeBtn').textContent='Perfil dibujado · iniciar de nuevo';
+ $('finishSketchBtn').disabled=true;$('extrudeSketchBtn').disabled=false;
+ status('Perfil cerrado con '+sketchPoints.length+' puntos. Ya puedes extruirlo.');
+}
+
 function addOperation(label){operationHistory.push(label);const tree=$('operationTree');tree.innerHTML=operationHistory.map((item,i)=>'<div style="padding:7px 5px;border-bottom:1px solid #39332a">↳ '+(i+1)+'. '+item+'</div>').join('');}
 function showFatal(err){
  engineState.textContent='Motor 3D no disponible';
@@ -169,6 +216,54 @@ $('createExtrusion').onclick=()=>{
   status('Boceto creado y extruido correctamente.');
  }catch(err){console.error(err);status('No se pudo crear la extrusión: '+err.message,true);}
 };
+
+$('drawModeBtn').onclick=()=>{
+ if(!THREE||!renderer){status('El motor 3D todavía no está listo.',true);return;}
+ if(drawingSketch||sketchPoints.length){resetSketch();status('Boceto cancelado.');return;}
+ sketchPoints=[];drawingSketch=true;
+ $('drawModeBtn').classList.add('primary');$('drawModeBtn').textContent='Cancelar dibujo';
+ $('finishSketchBtn').disabled=false;$('extrudeSketchBtn').disabled=true;
+ controls.enabled=false;
+ status('Dibujo activo: toca el plano para colocar puntos. Necesitas al menos tres.');
+};
+$('finishSketchBtn').onclick=finishSketch;
+$('extrudeSketchBtn').onclick=()=>{
+ if(!THREE||sketchPoints.length<3){status('Primero cierra un perfil válido.',true);return;}
+ try{
+  const shape=new THREE.Shape();shape.moveTo(sketchPoints[0].x,sketchPoints[0].y);
+  for(let i=1;i<sketchPoints.length;i++)shape.lineTo(sketchPoints[i].x,sketchPoints[i].y);
+  shape.closePath();
+  const d=Number($('extrudeDepth').value);
+  if(!Number.isFinite(d)||d<=0)throw new Error('La profundidad debe ser mayor que cero.');
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:false,curveSegments:24});geometry.computeVertexNormals();
+  const solid=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:$('colorInput').value,metalness:.1,roughness:.58,side:THREE.DoubleSide}));
+  const plane=$('workPlane').value;
+  if(plane==='XZ')solid.rotation.x=-Math.PI/2;
+  else if(plane==='YZ'){solid.rotation.y=Math.PI/2;solid.rotation.x=-Math.PI/2;}
+  solid.castShadow=true;solid.receiveShadow=true;
+  const count=sketchPoints.length;
+  setModel(solid,'Extrusión de perfil libre '+plane+' · '+count+' puntos · '+d+' mm');
+  addOperation('Extrusión de perfil libre '+plane+' ('+count+' puntos, '+d+' mm)');
+  resetSketch();controls.enabled=true;status('Perfil libre extruido. Puedes continuar con otra operación.');
+ }catch(err){status('No se pudo extruir el perfil: '+err.message,true);}
+};
+const drawRaycaster=new THREE.Raycaster(), drawNdc=new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown',e=>{
+ if(!drawingSketch||e.button!==0)return;
+ const rect=renderer.domElement.getBoundingClientRect();
+ drawNdc.x=((e.clientX-rect.left)/rect.width)*2-1;
+ drawNdc.y=-((e.clientY-rect.top)/rect.height)*2+1;
+ drawRaycaster.setFromCamera(drawNdc,camera);
+ const hit=new THREE.Vector3();
+ if(drawRaycaster.ray.intersectPlane(activeSketchPlane(),hit)){
+  const pt=worldToSketch(hit);
+  if(sketchPoints.length>2&&pt.distanceTo(sketchPoints[0])<2){finishSketch();return;}
+  sketchPoints.push(pt);refreshSketchLine(false);
+  status('Punto '+sketchPoints.length+' añadido al boceto.');
+ }
+});
+renderer.domElement.addEventListener('dblclick',e=>{if(drawingSketch){e.preventDefault();finishSketch();}});
+$('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 $('demoBtn').onclick=makeDemo;
 $('applyScale').onclick=()=>{const v=Number($('scaleInput').value);if(!currentModel||!Number.isFinite(v)||v<=0){status('Introduce una escala mayor que cero.',true);return;}currentModel.scale.setScalar(v);frameObject(currentModel);status('Escala aplicada.');};
 $('applyColor').onclick=()=>{if(!currentModel)return;currentModel.traverse(o=>{if(o.isMesh){o.material.color.set($('colorInput').value);o.material.needsUpdate=true;}});status('Material actualizado.');};
