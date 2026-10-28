@@ -486,27 +486,30 @@ document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventList
   viewMenu.classList.remove('open');
  }));
 
- // Deslizador de giro manual alrededor de los tres ejes, sin bloquear la órbita normal.
+ // Controles manuales de cámara en ejes XYZ. Se aplica desde una orientación base fija
+// para que los deslizadores respondan de forma predecible y no acumulen errores.
 const axisAngles={x:0,y:0,z:0};
+let axisBasePosition=null,axisBaseUp=null,axisBaseTarget=null;
+function captureAxisBase(){
+ if(!camera||!controls)return;
+ axisBasePosition=camera.position.clone();
+ axisBaseUp=camera.up.clone();
+ axisBaseTarget=controls.target.clone();
+}
 function applyAxisRotation(){
  if(!camera||!controls||!THREE)return;
- const target=controls.target.clone();
- const offset=camera.position.clone().sub(target);
- const spherical=new THREE.Spherical().setFromVector3(offset);
+ if(!axisBasePosition||!axisBaseTarget||!axisBaseUp)captureAxisBase();
  const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(
   THREE.MathUtils.degToRad(axisAngles.x),
   THREE.MathUtils.degToRad(axisAngles.y),
   THREE.MathUtils.degToRad(axisAngles.z),'XYZ'
  ));
- const base=new THREE.Vector3(0,0,1).applyQuaternion(q);
- const up=new THREE.Vector3(0,1,0).applyQuaternion(q);
- const direction=new THREE.Vector3(
-  Math.sin(spherical.phi)*Math.sin(spherical.theta),
-  Math.cos(spherical.phi),
-  Math.sin(spherical.phi)*Math.cos(spherical.theta)
- ).applyQuaternion(q);
- camera.position.copy(target).add(direction.multiplyScalar(Math.max(offset.length(),0.01)));
- camera.up.copy(up);camera.lookAt(target);controls.target.copy(target);controls.update();
+ const offset=axisBasePosition.clone().sub(axisBaseTarget).applyQuaternion(q);
+ camera.position.copy(axisBaseTarget).add(offset);
+ camera.up.copy(axisBaseUp).applyQuaternion(q);
+ controls.target.copy(axisBaseTarget);
+ camera.lookAt(controls.target);
+ controls.update();
 }
 ['X','Y','Z'].forEach(letter=>{
  const input=$('axis'+letter),output=$('axis'+letter+'Value');
@@ -515,20 +518,22 @@ function applyAxisRotation(){
   axisAngles[letter.toLowerCase()]=Number(input.value);
   output.value=input.value+'°';
   applyAxisRotation();
-  status('Giro manual: X '+axisAngles.x+'°, Y '+axisAngles.y+'°, Z '+axisAngles.z+'°.');
+  status('Giro de cámara: X '+axisAngles.x+'°, Y '+axisAngles.y+'°, Z '+axisAngles.z+'°.');
  });
 });
 $('axisReset').addEventListener('click',()=>{
  ['X','Y','Z'].forEach(letter=>{$('axis'+letter).value=0;$('axis'+letter+'Value').value='0°';axisAngles[letter.toLowerCase()]=0;});
- if(camera&&controls){camera.up.set(0,1,0);applyAxisRotation();}
- status('Giro manual restablecido.');
+ captureAxisBase();applyAxisRotation();
+ status('Giro restablecido. Usa los deslizadores X, Y y Z para orientar la vista.');
 });
 $('axisCenter').addEventListener('click',()=>{
  if(!camera||!controls)return;
  const target=controls.target.clone(),distance=Math.max(camera.position.distanceTo(target),1);
  camera.position.copy(target).add(new THREE.Vector3(distance*.65,distance*.5,distance*.65));
- camera.up.set(0,1,0);camera.lookAt(target);controls.target.copy(target);controls.update();
- status('Vista centrada para continuar girando.');
+ camera.up.set(0,1,0);camera.lookAt(target);controls.target.copy(target);
+ ['X','Y','Z'].forEach(letter=>{$('axis'+letter).value=0;$('axis'+letter+'Value').value='0°';axisAngles[letter.toLowerCase()]=0;});
+ controls.update();captureAxisBase();
+ status('Vista centrada. Ya puedes girar con los controles XYZ.');
 });
 $('orbitLock').addEventListener('click',()=>{if(!controls)return;controls.enableRotate=!controls.enableRotate;const locked=!controls.enableRotate;$('orbitLock').setAttribute('aria-pressed',String(locked));$('orbitLock').setAttribute('aria-label',locked?'Permitir rotación de cámara':'Bloquear rotación de cámara');$('lockIcon').textContent=locked?'🔒':'♙';status(locked?'Rotación de cámara bloqueada.':'Rotación de cámara activada.');});
 $('workPlane').addEventListener('change',()=>chooseWorkPlane($('workPlane').value,false));
