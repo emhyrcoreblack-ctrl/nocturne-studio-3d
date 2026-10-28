@@ -45,7 +45,10 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewMenu button{border:1px solid transparent;border-radius:8px;background:transparent;color:#eee7da;text-align:left;font-size:14px;min-height:43px;padding:10px 12px;white-space:normal;transition:background .15s,border-color .15s}
 #viewMenu button:active,#viewMenu button:hover,#viewMenu button:focus-visible{background:#3a3022;border-color:#a9844f;color:#f0ca86;outline:0}
 #viewMenu .menu-sep{height:1px;background:#55442e;margin:5px 7px}
-#viewCube{transform-origin:50% 50%;transition:transform .12s linear;will-change:transform}
+#viewCube{transform-origin:50% 50%;transform-style:preserve-3d;transition:transform .06s linear;will-change:transform;filter:drop-shadow(0 2px 5px #0008)}
+#viewGizmo{perspective:420px}
+#viewCube .cube-face{transition:fill .15s,stroke .15s,opacity .15s}
+#viewCube:active{filter:drop-shadow(0 0 7px #d2ad73aa)}
 @media(max-width:720px){#viewMenu{width:min(270px,78vw);max-height:56vh}#viewMenu button{min-height:44px;font-size:14px}}
 </style>
 <script type="importmap">
@@ -319,7 +322,7 @@ async function boot(){
   const axes=new THREE.AxesHelper(70);scene.add(axes);
   const resize=()=>{const w=$('canvasHost').clientWidth,h=$('canvasHost').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
   new ResizeObserver(resize).observe($('canvasHost'));window.addEventListener('orientationchange',()=>setTimeout(()=>{resize();if(camera&&controls)controls.update();},250));window.addEventListener('resize',resize);resize();
-  const syncViewCube=()=>{if(!camera||!controls)return;const dir=camera.position.clone().sub(controls.target).normalize();const yaw=Math.atan2(dir.x,dir.z)*180/Math.PI;const pitch=Math.asin(Math.max(-1,Math.min(1,dir.y)))*180/Math.PI;$('viewCube').style.transform='rotateZ('+(-yaw*.45)+'deg) rotateX('+Math.max(-24,Math.min(24,pitch*.32))+'deg)';};
+  const syncViewCube=()=>{if(!camera||!controls)return;const dir=camera.position.clone().sub(controls.target).normalize();const yaw=Math.atan2(dir.x,dir.z)*180/Math.PI;const pitch=Math.asin(Math.max(-1,Math.min(1,dir.y)))*180/Math.PI;const roll=camera.rotation.z*180/Math.PI;$('viewCube').style.transform='rotateY('+(-yaw)+'deg) rotateX('+(-pitch)+'deg) rotateZ('+(-roll*.35)+'deg)';$('viewCube').style.transformOrigin='50% 50%';};
   const animate=()=>{requestAnimationFrame(animate);controls.update();syncViewCube();renderer.render(scene,camera)};animate();
   engineState.textContent='Motor 3D listo';$('fallback').style.display='none';
    $('modelState').textContent='Escena vacía · elige un plano';
