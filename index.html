@@ -29,13 +29,16 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewGizmo .orbit-lock{width:64px;height:64px;border:1px solid #8c7049;border-radius:50%;background:#171614eF;color:var(--gold);font-size:25px;display:grid;place-items:center;position:relative;padding:0;min-height:0}
 #viewGizmo .orbit-lock:before{content:'↻';position:absolute;inset:2px;border:1px solid #8c704977;border-radius:50%;font-size:48px;line-height:52px;color:#d2ad73aa;pointer-events:none}
 #viewGizmo .orbit-lock span{position:relative;background:#171614;padding:0 4px;border-radius:5px}
-#viewCube{width:108px;height:108px;overflow:visible}
-#viewCube .cube-face{fill:#22272dcc;stroke:#d2ad73;stroke-width:1.2;cursor:pointer;transition:fill .15s,stroke .15s}
-#viewCube .cube-face:hover,#viewCube .cube-face:focus{fill:#b68b4fdd;stroke:#fff0cf;stroke-width:2.5;outline:none}
-#viewCube text{fill:#f4efe6;font:12px system-ui,sans-serif;pointer-events:none;text-anchor:middle}
-#viewCube .axis{font:bold 12px system-ui,sans-serif}
-#viewCube .axis-x{fill:#ff5d55}#viewCube .axis-y{fill:#80d96d}#viewCube .axis-z{fill:#5c8dff}
-@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:84px;height:84px}#viewCube text{font-size:11px}}
+#viewCube{width:76px;height:76px;position:relative;overflow:visible;transform-style:preserve-3d;cursor:pointer;touch-action:manipulation}
+#viewCube .cube-face{position:absolute;inset:0;width:76px;height:76px;min-height:0;padding:0;display:grid;place-items:center;border:1px solid #f1d29b;border-radius:3px;background:linear-gradient(145deg,#4a4030ee,#1b1a19f5);color:#fff0d2;font-size:11px;font-weight:650;letter-spacing:.2px;box-shadow:inset 0 0 18px #d2ad7320;backface-visibility:visible}
+#viewCube .cube-face:hover,#viewCube .cube-face:focus{background:linear-gradient(145deg,#b68b4fee,#56432b);border-color:#fff0cf;outline:1px solid #fff0cf}
+#viewCube .face-front{transform:translateZ(38px)}
+#viewCube .face-back{transform:rotateY(180deg) translateZ(38px)}
+#viewCube .face-right{transform:rotateY(90deg) translateZ(38px)}
+#viewCube .face-left{transform:rotateY(-90deg) translateZ(38px)}
+#viewCube .face-top{transform:rotateX(90deg) translateZ(38px)}
+#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(38px)}
+@media(max-width:720px){#viewGizmo{top:112px;right:7px;width:86px}#viewGizmo .orbit-lock{width:48px;height:48px;font-size:20px}#viewGizmo .orbit-lock:before{font-size:36px;line-height:39px}#viewCube{width:64px;height:64px}#viewCube .cube-face{width:64px;height:64px;font-size:10px}#viewCube .face-front{transform:translateZ(32px)}#viewCube .face-back{transform:rotateY(180deg) translateZ(32px)}#viewCube .face-right{transform:rotateY(90deg) translateZ(32px)}#viewCube .face-left{transform:rotateY(-90deg) translateZ(32px)}#viewCube .face-top{transform:rotateX(90deg) translateZ(32px)}#viewCube .face-bottom{transform:rotateX(-90deg) translateZ(32px)}}
 
 #viewGizmo{z-index:20}
 #viewCube{cursor:pointer;touch-action:manipulation}
@@ -45,7 +48,7 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 #viewMenu button{border:1px solid transparent;border-radius:8px;background:transparent;color:#eee7da;text-align:left;font-size:14px;min-height:43px;padding:10px 12px;white-space:normal;transition:background .15s,border-color .15s}
 #viewMenu button:active,#viewMenu button:hover,#viewMenu button:focus-visible{background:#3a3022;border-color:#a9844f;color:#f0ca86;outline:0}
 #viewMenu .menu-sep{height:1px;background:#55442e;margin:5px 7px}
-#viewCube{transform-origin:50% 50%;transform-style:preserve-3d;transition:transform .06s linear;will-change:transform;filter:drop-shadow(0 2px 5px #0008)}
+#viewCube{transform-origin:50% 50%;transform-style:preserve-3d;transition:transform .06s linear;will-change:transform;filter:drop-shadow(0 4px 7px #000b)}
 #viewGizmo{perspective:420px}
 #viewCube .cube-face{transition:fill .15s,stroke .15s,opacity .15s}
 #viewCube:active{filter:drop-shadow(0 0 7px #d2ad73aa)}
@@ -75,13 +78,14 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 </div>
 <div id="viewGizmo" aria-label="Control de orientación de la vista">
  <button type="button" class="orbit-lock" id="orbitLock" aria-pressed="false" aria-label="Bloquear rotación de cámara" title="Bloquear o permitir rotación"><span id="lockIcon">♙</span></button>
- <svg id="viewCube" viewBox="0 0 110 110" role="group" aria-label="Cubo de orientación: toca una cara para cambiar la vista">
-  <polygon class="cube-face" data-view="XZ" tabindex="0" role="button" aria-label="Vista frontal XZ" points="12,35 55,11 98,35 55,60"/>
-  <polygon class="cube-face" data-view="YZ" tabindex="0" role="button" aria-label="Vista derecha YZ" points="12,35 55,60 55,103 12,78"/>
-  <polygon class="cube-face" data-view="XY" tabindex="0" role="button" aria-label="Vista superior XY" points="55,60 98,35 98,78 55,103"/>
-  <text x="55" y="34">Top</text><text x="31" y="66">Front</text><text x="76" y="70">Right</text>
-  <text class="axis axis-z" x="5" y="20">Z</text><text class="axis axis-x" x="101" y="99">X</text><text class="axis axis-y" x="17" y="92">Y</text>
- </svg>
+ <div id="viewCube" role="button" tabindex="0" aria-label="Abrir perspectivas y orientación">
+  <button class="cube-face face-front" data-view="XZ" aria-label="Frontal">Front</button>
+  <button class="cube-face face-back" data-view="XZ" aria-label="Atrás">Back</button>
+  <button class="cube-face face-right" data-view="YZ" aria-label="Derecha">Right</button>
+  <button class="cube-face face-left" data-view="YZ" aria-label="Izquierda">Left</button>
+  <button class="cube-face face-top" data-view="XY" aria-label="Planta">Top</button>
+  <button class="cube-face face-bottom" data-view="XY" aria-label="Inferior">Bottom</button>
+ </div>
  <div id="viewMenu" role="menu" aria-label="Orientación y visualización">
   <div class="menu-title">ORIENTACIÓN DE VISTA</div>
   <button type="button" data-camera="top" role="menuitem">Planta · Superior</button>
@@ -188,7 +192,7 @@ function createWorkPlanes(){
  for(const [key,rotation] of defs){
   const geo=new THREE.PlaneGeometry(220,220);
   const mat=new THREE.MeshBasicMaterial({color:0x7696b5,transparent:true,opacity:.075,side:THREE.DoubleSide,depthWrite:false});
-  const mesh=new THREE.Mesh(geo,mat);mesh.rotation.set(rotation.x,rotation.y,rotation.z);mesh.renderOrder=1;scene.add(mesh);
+  const mesh=new THREE.Mesh(geo,mat);mesh.userData.workPlaneKey=key;mesh.rotation.set(rotation.x,rotation.y,rotation.z);mesh.renderOrder=1;scene.add(mesh);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x8daac7,transparent:true,opacity:.72,depthTest:false,depthWrite:false}));
   edges.rotation.copy(mesh.rotation);edges.renderOrder=3;scene.add(edges);
   // Rejilla propia del plano (en coordenadas locales) para que los tres planos se lean como en un CAD.
@@ -322,7 +326,7 @@ async function boot(){
   const axes=new THREE.AxesHelper(70);scene.add(axes);
   const resize=()=>{const w=$('canvasHost').clientWidth,h=$('canvasHost').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
   new ResizeObserver(resize).observe($('canvasHost'));window.addEventListener('orientationchange',()=>setTimeout(()=>{resize();if(camera&&controls)controls.update();},250));window.addEventListener('resize',resize);resize();
-  const syncViewCube=()=>{if(!camera||!controls)return;const dir=camera.position.clone().sub(controls.target).normalize();const yaw=Math.atan2(dir.x,dir.z)*180/Math.PI;const pitch=Math.asin(Math.max(-1,Math.min(1,dir.y)))*180/Math.PI;const roll=camera.rotation.z*180/Math.PI;$('viewCube').style.transform='rotateY('+(-yaw)+'deg) rotateX('+(-pitch)+'deg) rotateZ('+(-roll*.35)+'deg)';$('viewCube').style.transformOrigin='50% 50%';};
+  const syncViewCube=()=>{if(!camera||!controls)return;const q=camera.quaternion.clone().invert();const e=new THREE.Euler().setFromQuaternion(q,'YXZ');const yaw=THREE.MathUtils.radToDeg(e.y),pitch=THREE.MathUtils.radToDeg(e.x),roll=THREE.MathUtils.radToDeg(e.z);$('viewCube').style.transform='rotateX('+pitch+'deg) rotateY('+yaw+'deg) rotateZ('+roll+'deg)';};
   const animate=()=>{requestAnimationFrame(animate);controls.update();syncViewCube();renderer.render(scene,camera)};animate();
   engineState.textContent='Motor 3D listo';$('fallback').style.display='none';
    $('modelState').textContent='Escena vacía · elige un plano';
@@ -404,6 +408,14 @@ function installSketchPointerHandlers(){
  if(!renderer||!THREE||drawRaycaster)return;
  drawRaycaster=new THREE.Raycaster();drawNdc=new THREE.Vector2();
  renderer.domElement.addEventListener('pointerdown',e=>{
+  if(!drawingSketch&&e.button===0){
+   const rect=renderer.domElement.getBoundingClientRect();if(!rect.width||!rect.height)return;
+   drawNdc.x=((e.clientX-rect.left)/rect.width)*2-1;drawNdc.y=-((e.clientY-rect.top)/rect.height)*2+1;
+   drawRaycaster.setFromCamera(drawNdc,camera);
+   const hits=drawRaycaster.intersectObjects(Object.values(workPlaneMeshes),false);
+   if(hits.length){const key=hits[0].object.userData.workPlaneKey;if(key)chooseWorkPlane(key,true);}
+   return;
+  }
   if(!drawingSketch||e.button!==0)return;
   const rect=renderer.domElement.getBoundingClientRect();
   if(!rect.width||!rect.height)return;
@@ -422,9 +434,9 @@ function installSketchPointerHandlers(){
 }
 $('workPlane').addEventListener('change',()=>{if(drawingSketch||sketchPoints.length)resetSketch();});
 document.querySelectorAll('#planePicker [data-plane]').forEach(b=>b.addEventListener('click',()=>chooseWorkPlane(b.dataset.plane,false)));
- document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=e=>{e.stopPropagation();chooseWorkPlane(face.dataset.view,true);};face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();chooseWorkPlane(face.dataset.view,true);}});});
+ document.querySelectorAll('#viewCube [data-view]').forEach(face=>{const activate=e=>{e.stopPropagation();chooseWorkPlane(face.dataset.view,true);viewMenu.classList.add('open');};face.addEventListener('click',activate);face.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();chooseWorkPlane(face.dataset.view,true);viewMenu.classList.add('open');}});});
  const viewMenu=$('viewMenu');
- $('viewCube').addEventListener('click',()=>{viewMenu.classList.toggle('open');});
+ $('viewCube').addEventListener('click',e=>{if(e.target=== $('viewCube'))viewMenu.classList.toggle('open');});
  $('viewCube').setAttribute('role','button');$('viewCube').setAttribute('tabindex','0');$('viewCube').setAttribute('aria-label','Abrir lista de orientaciones y perspectiva');
  $('viewCube').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();viewMenu.classList.toggle('open');}});
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#viewGizmo'))viewMenu.classList.remove('open');});
