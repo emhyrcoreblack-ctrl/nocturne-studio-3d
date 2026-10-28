@@ -39,13 +39,14 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 
 #viewGizmo{z-index:20}
 #viewCube{cursor:pointer;touch-action:manipulation}
-#viewMenu{position:absolute;top:100%;right:0;width:min(270px,76vw);max-height:min(62vh,520px);overflow:auto;display:none;flex-direction:column;padding:7px;background:#f7f7f7;color:#222;border:1px solid #d2ad73;border-radius:7px;box-shadow:0 8px 28px #0009;z-index:30;overscroll-behavior:contain}
+#viewMenu{position:absolute;top:calc(100% + 8px);right:0;width:min(270px,78vw);max-height:min(62vh,520px);overflow:auto;display:none;flex-direction:column;gap:3px;padding:9px;background:linear-gradient(145deg,#211e19,#12110f);color:#eee7da;border:1px solid #b9955e;border-radius:13px;box-shadow:0 12px 30px #000b;z-index:30;overscroll-behavior:contain}
 #viewMenu.open{display:flex}
-#viewMenu .menu-title{font-size:12px;font-weight:800;letter-spacing:1.2px;padding:10px 12px 7px;color:#76582d;border-bottom:1px solid #ddd}
-#viewMenu button{border:0;border-radius:4px;background:transparent;color:#222;text-align:left;font-size:15px;min-height:42px;padding:9px 12px;white-space:normal}
-#viewMenu button:active,#viewMenu button:hover,#viewMenu button:focus-visible{background:#e7d4b2;outline:0}
-#viewMenu .menu-sep{height:1px;background:#ddd;margin:4px 7px}
-@media(max-width:720px){#viewMenu{width:min(270px,78vw);max-height:56vh}#viewMenu button{min-height:43px;font-size:15px}}
+#viewMenu .menu-title{font-size:11px;font-weight:800;letter-spacing:1.5px;padding:11px 12px 8px;color:#d2ad73;border-bottom:1px solid #55442e}
+#viewMenu button{border:1px solid transparent;border-radius:8px;background:transparent;color:#eee7da;text-align:left;font-size:14px;min-height:43px;padding:10px 12px;white-space:normal;transition:background .15s,border-color .15s}
+#viewMenu button:active,#viewMenu button:hover,#viewMenu button:focus-visible{background:#3a3022;border-color:#a9844f;color:#f0ca86;outline:0}
+#viewMenu .menu-sep{height:1px;background:#55442e;margin:5px 7px}
+#viewCube{transform-origin:50% 50%;transition:transform .12s linear;will-change:transform}
+@media(max-width:720px){#viewMenu{width:min(270px,78vw);max-height:56vh}#viewMenu button{min-height:44px;font-size:14px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.180.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.180.0/examples/jsm/"}}
@@ -317,8 +318,9 @@ async function boot(){
    createWorkPlanes();
   const axes=new THREE.AxesHelper(70);scene.add(axes);
   const resize=()=>{const w=$('canvasHost').clientWidth,h=$('canvasHost').clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
-  new ResizeObserver(resize).observe($('canvasHost'));window.addEventListener('orientationchange',()=>setTimeout(resize,250));resize();
-  const animate=()=>{requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)};animate();
+  new ResizeObserver(resize).observe($('canvasHost'));window.addEventListener('orientationchange',()=>setTimeout(()=>{resize();if(camera&&controls)controls.update();},250));window.addEventListener('resize',resize);resize();
+  const syncViewCube=()=>{if(!camera||!controls)return;const dir=camera.position.clone().sub(controls.target).normalize();const yaw=Math.atan2(dir.x,dir.z)*180/Math.PI;const pitch=Math.asin(Math.max(-1,Math.min(1,dir.y)))*180/Math.PI;$('viewCube').style.transform='rotateZ('+(-yaw*.45)+'deg) rotateX('+Math.max(-24,Math.min(24,pitch*.32))+'deg)';};
+  const animate=()=>{requestAnimationFrame(animate);controls.update();syncViewCube();renderer.render(scene,camera)};animate();
   engineState.textContent='Motor 3D listo';$('fallback').style.display='none';
    $('modelState').textContent='Escena vacía · elige un plano';
    $('modelInfo').textContent='No hay ningún sólido. Selecciona un plano y crea tu primera forma.';
