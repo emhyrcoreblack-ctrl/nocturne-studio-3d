@@ -23,9 +23,6 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 @media(max-width:720px){header{padding:10px;align-items:flex-start}.brand{font-size:14px}.sub{font-size:9px}.actions{gap:5px}button,.filelabel{padding:9px 10px;font-size:12px;min-height:38px}main{grid-template-columns:1fr;height:calc(100dvh - 82px);padding:7px;gap:7px}aside{position:absolute;z-index:4;right:14px;top:92px;width:min(260px,calc(100vw - 28px));max-height:72dvh;box-shadow:0 8px 32px #0009;display:none}aside.open{display:block}#viewport{grid-row:1;min-height:0}#panelToggle{display:inline-block}}
 @media(min-width:721px){#panelToggle{display:none}}
 </style>
-<script type="importmap">
-{"imports":{"three":"https://esm.sh/three@0.180.0","three/addons/":"https://esm.sh/three@0.180.0/examples/jsm/"}}
-</script>
 </head>
 <body>
 <header>
@@ -159,12 +156,12 @@ async function boot(){
  try{
   // Evita dejar la interfaz bloqueada indefinidamente si el CDN no responde en el móvil.
   const moduleLoad=Promise.all([
-   import('three'),
-   import('three/addons/controls/OrbitControls.js'),
-   import('three/addons/loaders/STLLoader.js'),
-   import('three/addons/exporters/STLExporter.js')
+   import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js'),
+   import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js'),
+   import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/STLLoader.js'),
+   import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/exporters/STLExporter.js')
   ]);
-  const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tiempo agotado al descargar Three.js desde jsDelivr. Comprueba Internet o prueba otro navegador/red.')),12000));
+  const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tiempo agotado al descargar los módulos 3D. Comprueba Internet o prueba otro navegador/red.')),12000));
   const modules=await Promise.race([moduleLoad,timeout]);
   [THREE]=modules;const OrbitControls=modules[1].OrbitControls;STLLoader=modules[2].STLLoader;STLExporter=modules[3].STLExporter;
   scene=new THREE.Scene();scene.background=new THREE.Color('#171614');
