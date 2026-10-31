@@ -64,3 +64,25 @@ test("solver une extremos coincidentes",()=>{
  const endpoints=e=>[e.data.start,e.data.end];
  assert.ok(endpoints(a).some(p=>endpoints(b).some(q=>Math.hypot(p.x-q.x,p.y-q.y)<1e-9)));
 });
+
+test("detecta perfil cerrado de cuatro líneas",()=>{
+ const s=new Sketch();s.addRectangle({x:2,y:3},20,10);
+ const profiles=s.getClosedProfiles();
+ assert.equal(profiles.length,1);
+ assert.equal(profiles[0].kind,"polygon");
+ assert.equal(profiles[0].points.length,4);
+});
+test("detecta círculo como perfil cerrado analítico",()=>{
+ const s=new Sketch();s.addCircle({x:4,y:6},5);
+ const [profile]=s.getClosedProfiles();
+ assert.equal(profile.kind,"circle");
+ assert.equal(profile.radius,5);
+});
+test("rechaza contorno abierto",()=>{
+ const s=new Sketch();s.addLine({x:0,y:0},{x:5,y:0});s.addLine({x:5,y:0},{x:5,y:5});
+ assert.throws(()=>s.getClosedProfiles(),/abiertas/);
+});
+test("detecta dos regiones cerradas independientes",()=>{
+ const s=new Sketch();s.addRectangle({x:0,y:0},4,4);s.addRectangle({x:10,y:10},3,3);
+ assert.equal(s.getClosedProfiles().length,2);
+});
