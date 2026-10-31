@@ -1,45 +1,65 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131a">
-<meta name="description" content="NOCTURNE STUDIO 3D — desarrollo del motor CAD paramétrico.">
-<title>NOCTURNE STUDIO 3D</title>
+<meta name="description" content="NOCTURNE STUDIO 3D — progreso del motor CAD v2.">
+<title>NOCTURNE STUDIO 3D · Motor v2.1</title>
 <style>
-:root{color-scheme:dark;--bg:#10131a;--panel:#191e28;--line:#30394a;--text:#edf1f8;--muted:#a5afc0;--accent:#91b7ff;--green:#8bd5ae}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#25334b 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
-main{width:min(920px,calc(100% - 36px));margin:0 auto;padding:64px 0 80px}
-.mark{font-size:12px;letter-spacing:.22em;color:var(--accent);font-weight:700}
-h1{font-size:clamp(38px,7vw,68px);line-height:1.03;letter-spacing:-.045em;margin:18px 0}
-.lead{font-size:19px;color:var(--muted);max-width:680px}
-.notice{margin:34px 0;padding:20px 22px;border:1px solid #536b91;background:#1b2739;border-radius:14px}
-.notice strong{color:#c9dcff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:28px 0}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
-.card h2{font-size:17px;margin:0 0 8px}.card p{color:var(--muted);margin:0;font-size:14px}
-.status{display:inline-flex;align-items:center;gap:8px;color:var(--green);font-size:13px;font-weight:650}
-.dot{width:8px;height:8px;background:currentColor;border-radius:50%}
-a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-footer{border-top:1px solid var(--line);padding-top:22px;color:var(--muted);font-size:13px}
-small{color:var(--muted)}
-</style>
-</head>
-<body>
-<main>
-<div class="mark">PROYECTO CAD · DESARROLLO ACTIVO</div>
+:root{color-scheme:dark;--bg:#0d1119;--panel:#171e2a;--line:#2c394c;--text:#edf3ff;--muted:#a7b3c7;--blue:#8db8ff;--green:#83ddb1;--amber:#f0c47d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#263c5c 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}
+main{width:min(980px,calc(100% - 32px));margin:auto;padding:42px 0 70px}
+.kicker{font-size:11px;letter-spacing:.2em;color:var(--blue);font-weight:800}
+h1{font-size:clamp(38px,8vw,66px);line-height:1;letter-spacing:-.05em;margin:14px 0}
+.lead{font-size:18px;color:var(--muted);max-width:720px}
+.pill{display:inline-block;border:1px solid #42624f;color:var(--green);padding:5px 10px;border-radius:30px;font-size:12px;margin:14px 0}
+h2{font-size:21px;margin:34px 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px}
+.card{background:linear-gradient(145deg,#1b2534,#141a25);border:1px solid var(--line);border-radius:15px;padding:18px}
+.card h3{margin:0 0 7px;font-size:16px}.card p{margin:0;color:var(--muted);font-size:14px}
+.tag{font-size:11px;color:var(--green);font-weight:700;letter-spacing:.08em}
+.preview{margin-top:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#182536,#101722);padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}
+.preview svg{width:100%;height:auto;max-height:230px}.preview p{color:var(--muted);font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px}
+.step{background:#111925;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-size:12px;color:var(--muted)}
+.step b{display:block;color:var(--text);font-size:13px}
+.note{padding:16px 18px;background:#292417;border:1px solid #66522d;border-radius:13px;color:#e9d7b5;font-size:14px;margin:22px 0}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+footer{border-top:1px solid var(--line);margin-top:35px;padding-top:20px;color:var(--muted);font-size:13px}
+@media(max-width:620px){.preview{grid-template-columns:1fr}.steps{grid-template-columns:repeat(2,1fr)}main{padding-top:30px}}
+</style></head>
+<body><main>
+<div class="kicker">DESARROLLO CAD · REGISTRO DE AVANCE</div>
 <h1>NOCTURNE<br>STUDIO 3D</h1>
-<p class="lead">Estamos construyendo un motor CAD 3D paramétrico desde cero. Primero la geometría y las herramientas; la interfaz completa inspirada en Shapr3D llegará cuando el motor esté implementado y validado.</p>
-<section class="notice"><strong>Esta todavía no es la aplicación CAD interactiva.</strong><br>Esta página reemplaza la vista del prototipo anterior para evitar confusiones. El nuevo motor está en desarrollo y aún no debe considerarse una versión lista para diseñar piezas.</section>
-<div class="status"><span class="dot"></span> Motor v2 · fundación inicial publicada</div>
-<section class="grid" aria-label="Estado del desarrollo">
-<article class="card"><h2>Bocetos 2D</h2><p>Líneas, rectángulos, círculos, arcos y validación inicial de restricciones.</p></article>
-<article class="card"><h2>Geometría 3D</h2><p>Vectores, planos de trabajo y extrusión poligonal básica a malla.</p></article>
-<article class="card"><h2>Documento paramétrico</h2><p>Características serializables, regeneración inicial e historial deshacer/rehacer.</p></article>
-<article class="card"><h2>En desarrollo</h2><p>Solver de restricciones, kernel B-rep exacto, booleanos, superficies y edición de mallas.</p></article>
+<p class="lead">Motor geométrico y paramétrico en construcción desde cero. Estamos conectando las herramientas de boceto con operaciones tridimensionales antes de crear la interfaz definitiva para Android.</p>
+<div class="pill">● MOTOR V2 · ACTUALIZACIÓN 31 OCT 2026</div>
+
+<h2>Qué se ha añadido en esta entrega</h2>
+<div class="grid">
+<article class="card"><div class="tag">BOCETOS 2D</div><h3>Geometría de perfiles</h3><p>Líneas, rectángulos, círculos y arcos. Detección inicial de contornos cerrados y perfiles circulares.</p></article>
+<article class="card"><div class="tag">RESTRICCIONES</div><h3>Solver inicial</h3><p>Ajuste automático de horizontal, vertical, distancia, radio, igualdad y coincidencia. Todavía limitado a casos básicos.</p></article>
+<article class="card"><div class="tag">OPERACIONES 3D</div><h3>Extrusión de perfiles</h3><p>Extrusión poligonal convexa y generación de cilindros a partir de círculos, mediante mallas triangulares.</p></article>
+<article class="card"><div class="tag">DOCUMENTO CAD</div><h3>Historial paramétrico</h3><p>Características serializables, regeneración inicial y operaciones de deshacer/rehacer.</p></article>
+</div>
+
+<h2>Vista conceptual de la extrusión</h2>
+<section class="preview">
+<svg viewBox="0 0 420 230" role="img" aria-label="Ilustración conceptual de un cilindro y una pieza prismática extruidos">
+<defs><linearGradient id="side" x1="0" x2="1"><stop stop-color="#4779b8"/><stop offset="1" stop-color="#24446f"/></linearGradient><linearGradient id="top" x1="0" x2="1"><stop stop-color="#9bc7ff"/><stop offset="1" stop-color="#5f91d0"/></linearGradient></defs>
+<path d="M40 90 L120 48 L220 88 L140 132 Z" fill="url(#top)" stroke="#b8d6ff" stroke-width="2"/>
+<path d="M40 90 L40 166 L140 207 L140 132 Z" fill="#315783" stroke="#8db8ff" stroke-width="2"/>
+<path d="M140 132 L220 88 L220 164 L140 207 Z" fill="url(#side)" stroke="#8db8ff" stroke-width="2"/>
+<ellipse cx="315" cy="73" rx="48" ry="20" fill="#9bc7ff" stroke="#c7e0ff" stroke-width="2"/>
+<path d="M267 73 V154 C267 165 289 174 315 174 C341 174 363 165 363 154 V73" fill="#315783" stroke="#8db8ff" stroke-width="2"/>
+<path d="M267 73 C267 84 289 93 315 93 C341 93 363 84 363 73" fill="none" stroke="#c7e0ff" stroke-width="2"/>
+<path d="M267 154 C267 165 289 174 315 174 C341 174 363 165 363 154" fill="none" stroke="#8db8ff" stroke-width="2"/>
+<text x="130" y="225" fill="#b7c9e2" font-size="11" text-anchor="middle">Perfil poligonal</text><text x="315" y="198" fill="#b7c9e2" font-size="11" text-anchor="middle">Perfil circular</text>
+</svg>
+<div><h3>Del boceto al volumen</h3><p>El motor ya dispone de funciones para extruir un perfil poligonal o circular y regenerar la característica desde los parámetros del documento.</p><p><strong>Esta ilustración es conceptual:</strong> no es todavía un visor 3D interactivo ni una captura de la aplicación terminada.</p></div>
 </section>
-<h2>Seguimiento técnico</h2>
-<p>El código del motor y sus pruebas están disponibles en <a href="https://github.com/emhyrcoreblack-ctrl/nocturne-studio-3d/tree/main/engine-v2">engine-v2 en GitHub</a>. Consulta también el <a href="https://github.com/emhyrcoreblack-ctrl/nocturne-studio-3d/blob/main/engine-v2/ROADMAP.md">plan de implementación</a>.</p>
-<footer>NOCTURNE STUDIO 3D · La versión anterior se conserva en el archivo legacy del repositorio. Esta página informa del estado real del motor nuevo.</footer>
-</main>
-</body>
-</html>
+<div class="steps"><div class="step"><b>01 · Dibujar</b>Crear geometría 2D</div><div class="step"><b>02 · Restringir</b>Definir medidas</div><div class="step"><b>03 · Cerrar</b>Detectar perfil</div><div class="step"><b>04 · Extruir</b>Generar volumen</div></div>
+
+<div class="note"><strong>Lo que falta:</strong> kernel B-rep exacto, booleanos robustos, revolución, barrido, loft, filetes, chaflanes, edición de STL y un visor conectado al motor. La interfaz inspirada en Shapr3D se hará después de validar estas funciones.</div>
+<h2>Consulta el desarrollo</h2>
+<p><a href="https://github.com/emhyrcoreblack-ctrl/nocturne-studio-3d/tree/main/engine-v2">Código del motor</a> · <a href="https://github.com/emhyrcoreblack-ctrl/nocturne-studio-3d/tree/main/engine-v2/tests">Pruebas</a> · <a href="https://github.com/emhyrcoreblack-ctrl/nocturne-studio-3d/blob/main/engine-v2/ROADMAP.md">Hoja de ruta</a></p>
+<footer>NOCTURNE STUDIO 3D · Página de seguimiento técnico. No es todavía una aplicación CAD lista para producción.</footer>
+</main></body></html>
