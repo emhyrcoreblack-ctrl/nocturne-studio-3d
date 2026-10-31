@@ -25,4 +25,4 @@
 10. Interfaz Android inspirada en Shapr3D, después de validar el motor.
 
 ## Límites actuales
-Las restricciones se comprueban, pero no ajustan automáticamente la geometría. La extrusión crea malla, no B-rep exacto, y solo acepta perfiles convexos sin agujeros. No anunciar como implementadas las operaciones que aún no existen.
+El solver aplica automáticamente un conjunto limitado de restricciones; todavía no es un solucionador general no lineal y puede no converger en sistemas incompatibles o complejos. La extrusión crea malla, no B-rep exacto, y solo acepta perfiles convexos sin agujeros. No anunciar como implementadas las operaciones que aún no existen.
