@@ -110,6 +110,7 @@ aside{border:1px solid var(--line);border-radius:14px;background:#1d1b18;padding
 <div class="field"><label for="sketchHeight">Alto (mm, rectángulo)</label><input id="sketchHeight" type="number" min="1" max="10000" value="60"></div>
 <div class="field"><label for="extrudeDepth">Profundidad de extrusión (mm)</label><input id="extrudeDepth" type="number" min="1" max="10000" value="30"></div>
 <button class="primary full" id="createExtrusion">Crear boceto y extruir</button>
+<button class="full" id="createDimensionedSketchBtn">＋ Crear boceto rectangular acotado</button>
 <button class="full" id="drawModeBtn">✎ Dibujar perfil en el plano</button>
 <button class="full" id="finishSketchBtn" disabled>Cerrar boceto (doble toque también)</button>
 <button class="primary full" id="extrudeSketchBtn" disabled>Extruir perfil dibujado</button>
@@ -149,6 +150,7 @@ const engineState=$('engineState');
 let THREE, scene, camera, renderer, controls, STLLoader, STLExporter, currentModel=null, grid;
 const operationHistory=[];
 let drawingSketch=false, sketchPoints=[], sketchLine=null, sketchPlaneMesh=null;
+const sketchDimensionLabels=[];
 const raycasterRef={current:null};
 let workPlaneMeshes={}, workPlaneEdges={};
 function updatePlaneAppearance(){
@@ -240,8 +242,35 @@ function refreshSketchLine(closed=false){
  sketchLine=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xf0c77b,depthTest:false}));
  sketchLine.renderOrder=10;scene.add(sketchLine);
 }
+function clearSketchDimensions(){
+ for(const item of sketchDimensionLabels){scene.remove(item);if(item.material?.map)item.material.map.dispose();if(item.material)item.material.dispose();}
+ sketchDimensionLabels.length=0;
+}
+function addSketchDimensionLabel(text,position){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+ const ctx=canvas.getContext('2d');ctx.font='bold 66px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ const width=ctx.measureText(text).width+54;ctx.fillStyle='rgba(255,255,255,.94)';ctx.strokeStyle='#252525';ctx.lineWidth=5;
+ ctx.beginPath();ctx.roundRect((512-width)/2,12,width,104,18);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#111';ctx.fillText(text,256,64);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false,depthWrite:false}));
+ sprite.scale.set(Math.max(22,text.length*5.5),Math.max(7,text.length*1.35),1);sprite.position.copy(position);sprite.renderOrder=20;scene.add(sprite);sketchDimensionLabels.push(sprite);
+}
+function createDimensionedRectangle(){
+ if(!THREE||!scene||!controls){status('El motor 3D todavía no está listo.',true);return;}
+ const w=Number($('sketchWidth').value),h=Number($('sketchHeight').value);
+ if(!Number.isFinite(w)||!Number.isFinite(h)||w<=0||h<=0){status('Introduce ancho y alto mayores que cero.',true);return;}
+ resetSketch();clearSketchDimensions();
+ sketchPoints=[new THREE.Vector2(0,0),new THREE.Vector2(w,0),new THREE.Vector2(w,h),new THREE.Vector2(0,h)];
+ refreshSketchLine(true);
+ const offset=Math.max(w,h)*0.09;
+ addSketchDimensionLabel(w.toFixed(3)+' mm',sketchToWorld(new THREE.Vector2(w/2,-offset)));
+ addSketchDimensionLabel(h.toFixed(3)+' mm',sketchToWorld(new THREE.Vector2(w+offset,h/2)));
+ $('drawModeBtn').textContent='Boceto acotado creado';$('finishSketchBtn').disabled=true;$('extrudeSketchBtn').disabled=false;
+ status('Boceto rectangular acotado creado desde el origen: '+w+' × '+h+' mm. Cambia las cotas en Ancho y Alto y vuelve a crearlo para actualizarlas.');
+}
 function resetSketch(){
- drawingSketch=false;sketchPoints=[];
+ drawingSketch=false;sketchPoints=[];clearSketchDimensions();
  if(controls)controls.enabled=true;
  if(sketchLine){scene.remove(sketchLine);sketchLine.geometry.dispose();sketchLine.material.dispose();sketchLine=null;}
  $('drawModeBtn').classList.remove('primary');$('drawModeBtn').textContent='✎ Dibujar perfil en el plano';
@@ -392,6 +421,7 @@ $('drawModeBtn').onclick=()=>{
  status('Dibujo activo: toca el plano para colocar puntos. Necesitas al menos tres.');
 };
 $('finishSketchBtn').onclick=finishSketch;
+$('createDimensionedSketchBtn').onclick=createDimensionedRectangle;
 $('extrudeSketchBtn').onclick=()=>{
  if(!THREE||sketchPoints.length<3){status('Primero cierra un perfil válido.',true);return;}
  try{
