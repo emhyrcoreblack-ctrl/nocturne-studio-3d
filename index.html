@@ -11,7 +11,7 @@
 header{height:auto;min-height:76px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);background:#1d1a17}
 .brand{font-weight:800;letter-spacing:.16em;color:var(--gold);font-size:17px}.sub{font-size:10px;letter-spacing:.16em;color:var(--muted);margin-top:3px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}button,.filelabel{font:inherit;cursor:pointer;border:1px solid var(--line);background:#2a2723;color:var(--text);padding:10px 13px;border-radius:9px;min-height:42px}button.primary,.filelabel.primary{background:var(--gold);color:#211a11;border-color:#e5c795;font-weight:650}button:active,.filelabel:active{transform:scale(.98)}button:disabled{opacity:.45;cursor:default}
-main{height:calc(100dvh - 80px);display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:10px}
+main{height:calc(100dvh - 80px);display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:10px;position:relative}
 #viewport{position:relative;min-width:0;min-height:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at center,#262522,#111110 80%)}
 #canvasHost{position:absolute;inset:0}#canvasHost canvas{display:block;width:100%;height:100%;touch-action:none}
 #planePicker{position:absolute;z-index:2;top:62px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}#planePicker button{font-size:12px;min-height:34px;padding:7px 10px;background:#171614dd}#planePicker button.active{background:var(--gold);color:#211a11;border:2px solid #fff0cf;box-shadow:0 0 0 3px #d2ad7355,0 0 18px #d2ad73aa;font-weight:800;transform:translateY(-1px)}#planePicker button:focus-visible{outline:3px solid #fff0cf;outline-offset:3px}.plane-note{font-size:11px;color:var(--muted);align-self:center;padding:5px}
@@ -19,9 +19,9 @@ main{height:calc(100dvh - 80px);display:grid;grid-template-columns:minmax(0,1fr)
 #status{position:absolute;bottom:12px;left:12px;right:12px;background:#111d;border:1px solid #39332a;padding:10px 12px;border-radius:8px;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 #status.error{color:var(--danger);border-color:#77443d}
 #fallback{display:none;position:absolute;inset:0;place-items:center;text-align:center;padding:24px;color:var(--danger);background:#171614ee;z-index:3}
-aside{display:none!important;border:0;background:transparent;padding:0;overflow:hidden}h2{font-size:13px;letter-spacing:.12em;color:var(--gold);margin:5px 0 13px}.field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}input[type=number],select{width:100%;background:#121211;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:10px;font:inherit}
+#panel{display:none;border:1px solid var(--line);background:linear-gradient(160deg,#24211d,#171614);padding:14px;overflow:auto;border-radius:12px;min-width:0}main.panel-open{grid-template-columns:minmax(0,1fr) minmax(270px,320px)}main.panel-open #panel{display:block}#panel .panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}#panel .panel-head button{min-height:32px;padding:5px 9px}h2{font-size:13px;letter-spacing:.12em;color:var(--gold);margin:5px 0 13px}.field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}input[type=number],select{width:100%;background:#121211;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:10px;font:inherit}
 .full{width:100%;margin:4px 0}.help{font-size:12px;line-height:1.5;color:var(--muted)}#fileInput{display:none}.divider{height:1px;background:#42372a;margin:15px 0}
-@media(max-width:720px){header{padding:10px;align-items:flex-start}.brand{font-size:14px}.sub{font-size:9px}.actions{gap:5px}button,.filelabel{padding:9px 10px;font-size:12px;min-height:38px}main{grid-template-columns:1fr;height:calc(100dvh - 82px);padding:7px;gap:7px}#viewport{grid-row:1;min-height:0}}
+@media(max-width:720px){header{padding:10px;align-items:flex-start}.brand{font-size:14px}.sub{font-size:9px}.actions{gap:5px}button,.filelabel{padding:9px 10px;font-size:12px;min-height:38px}main{grid-template-columns:1fr;height:calc(100dvh - 82px);padding:7px;gap:7px}#viewport{grid-row:1;min-height:0}main.panel-open{grid-template-columns:1fr}main.panel-open #panel{position:absolute;z-index:25;top:7px;right:7px;bottom:7px;width:min(340px,calc(100vw - 28px));box-shadow:0 12px 35px #000c} }
 
 
 /* Gizmo de orientación estilo CAD */
@@ -56,10 +56,10 @@ aside{display:none!important;border:0;background:transparent;padding:0;overflow:
 <div><div class="brand">NOCTURNE</div><div style="font-weight:700;letter-spacing:.19em">STUDIO 3D</div><div class="sub">PARAMETRIC FURNITURE · CAD WORKBENCH</div></div>
 <div class="actions">
 <label class="filelabel primary" for="fileInput">Importar STL</label><input id="fileInput" type="file" accept=".stl,model/stl,application/sla">
-<button id="exportBtn">Exportar STL</button>
+<button id="panelToggle" type="button" aria-expanded="false" aria-controls="panel">☷ Herramientas</button><button id="exportBtn">Exportar STL</button>
 </div>
 </header>
-<main>
+<main id="main">
 <section id="viewport" aria-label="Escena 3D">
 <div id="canvasHost"></div>
 <div id="hud"><span class="pill" id="engineState">Iniciando motor 3D…</span><span class="pill" id="modelState">Escena vacía · elige un plano</span></div>
@@ -88,8 +88,7 @@ aside{display:none!important;border:0;background:transparent;padding:0;overflow:
 <div id="fallback"></div>
 <div id="status" role="status">Preparando escena 3D…</div>
 </section>
-<aside id="panel">
-<h2>MODELO Y ESCENA</h2>
+<aside id="panel"><div class="panel-head"><h2>MODELO Y ESCENA</h2><button id="panelClose" type="button" aria-label="Cerrar panel">✕</button></div>
 <button class="primary full" id="importPanel">＋ Importar archivo STL</button>
 <button class="full" id="resetView">Centrar vista</button>
 
@@ -302,9 +301,9 @@ function frameObject(obj){
  camera.near=Math.max(maxDim/1000,.001);camera.far=maxDim*100;camera.updateProjectionMatrix();
  controls.target.set(0,0,0);controls.update();
 }
-function setModel(obj,label){
+function setModel(obj,label,fitCamera=true){
  if(currentModel){scene.remove(currentModel);currentModel.traverse(n=>{if(n.geometry)n.geometry.dispose();if(n.material){if(Array.isArray(n.material))n.material.forEach(m=>m.dispose());else n.material.dispose();}})}
- currentModel=obj;scene.add(obj);frameObject(obj);
+ currentModel=obj;scene.add(obj);if(fitCamera)frameObject(obj);
  $('modelState').textContent=label;
  const box=new THREE.Box3().setFromObject(obj), size=box.getSize(new THREE.Vector3());
  $('modelInfo').innerHTML='Dimensiones aproximadas:<br>Ancho: '+size.x.toFixed(2)+'<br>Alto: '+size.y.toFixed(2)+'<br>Profundidad: '+size.z.toFixed(2);
@@ -383,12 +382,16 @@ $('fileInput').addEventListener('change',async e=>{
   if(!geometry||!geometry.attributes?.position||geometry.attributes.position.count<3)throw new Error('El archivo no contiene una malla STL válida.');
   geometry.computeVertexNormals();geometry.computeBoundingBox();
   const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:$('colorInput').value,metalness:.08,roughness:.65,side:THREE.DoubleSide}));
-  mesh.castShadow=true;mesh.receiveShadow=true;setModel(mesh,file.name);addOperation('Importar STL: '+file.name);
+  mesh.castShadow=true;mesh.receiveShadow=true;setModel(mesh,file.name,false);addOperation('Importar STL: '+file.name);
   status('STL importado correctamente: '+file.name);
  }catch(err){console.error(err);status('No se pudo importar el STL: '+(err.message||String(err)),true);}
  e.target.value='';
 });
 $('importPanel').onclick=()=>$('fileInput').click();
+const panelToggle=$('panelToggle'),panelClose=$('panelClose');
+function setPanelOpen(open){$('main').classList.toggle('panel-open',open);panelToggle.setAttribute('aria-expanded',String(open));panelToggle.textContent=open?'✕ Ocultar herramientas':'☷ Herramientas';}
+panelToggle.addEventListener('click',()=>setPanelOpen(!$('main').classList.contains('panel-open')));
+panelClose.addEventListener('click',()=>setPanelOpen(false));
 
 $('resetView').onclick=()=>{if(currentModel)frameObject(currentModel);else{camera.position.set(180,140,190);controls.target.set(0,0,0);controls.update();}};
 $('createExtrusion').onclick=()=>{
