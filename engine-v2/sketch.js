@@ -68,6 +68,51 @@ export class Sketch {
     const d={id:`dimension-${this.dimensions.length+1}`,type,entityId,value,label:label??String(value)};
     this.dimensions.push(d);return d;
   }
+  /**
+   * Apply supported constraints to the sketch geometry.
+   * This is a deterministic lightweight solver, not yet a general nonlinear
+   * constraint solver. It anchors the first point of a line when changing length.
+   */
+  solve({iterations=24,tolerance=1e-6}={}){
+    if(!Number.isInteger(iterations)||iterations<1)throw new RangeError("iterations debe ser un entero positivo");
+    const find=id=>this.entities.find(e=>e.id===id);
+    const endpoints=e=>e?.type==="line"?[e.data.start,e.data.end]:null;
+    const setLength=(line,length)=>{
+      const [a,b]=endpoints(line),dx=b.x-a.x,dy=b.y-a.y,n=Math.hypot(dx,dy);
+      const ux=n>EPS?dx/n:1,uy=n>EPS?dy/n:0;
+      b.x=a.x+ux*length;b.y=a.y+uy*length;
+    };
+    for(let pass=0;pass<iterations;pass++){
+      for(const c of this.constraints){
+        const a=find(c.entityIds[0]),b=c.entityIds[1]?find(c.entityIds[1]):null;
+        if(!a)continue;
+        if(c.type==="horizontal"&&a.type==="line")a.data.end.y=a.data.start.y;
+        else if(c.type==="vertical"&&a.type==="line")a.data.end.x=a.data.start.x;
+        else if(c.type==="distance"&&a.type==="line")setLength(a,c.parameters.value);
+        else if(c.type==="radius"&&["circle","arc"].includes(a.type))a.data.radius=c.parameters.value;
+        else if(c.type==="coincident"&&b){
+          const ea=endpoints(a),eb=endpoints(b);
+          if(ea&&eb){
+            let best=[ea[0],eb[0]],d=Infinity;
+            for(const pa of ea)for(const pb of eb){const n=dist(pa,pb);if(n<d){d=n;best=[pa,pb];}}
+            best[1].x=best[0].x;best[1].y=best[0].y;
+          }
+        } else if(c.type==="equal"&&b){
+          const measure=e=>e.type==="line"?dist(e.data.start,e.data.end):["circle","arc"].includes(e.type)?e.data.radius:null;
+          const target=measure(a);
+          if(target!==null){
+            if(b.type==="line")setLength(b,target);
+            else if(["circle","arc"].includes(b.type))b.data.radius=target;
+          }
+        }
+      }
+      if(this.validate().valid)break;
+    }
+    const report=this.validate();
+    report.converged=report.valid;
+    report.iterations=iterations;
+    return report;
+  }
   validate(){
     const errors=[];
     for(const c of this.constraints){
