@@ -113,6 +113,47 @@ export class Sketch {
     report.iterations=iterations;
     return report;
   }
+  /**
+   * Extract closed planar regions from line-wire loops and standalone circles.
+   * Returns ordered polygon vertices in sketch coordinates. Arcs are retained
+   * as sketch entities but are not yet tessellated into region boundaries.
+   */
+  getClosedProfiles({tolerance=1e-6}={}){
+    if(!Number.isFinite(tolerance)||tolerance<=0)throw new RangeError("La tolerancia debe ser positiva");
+    const lines=this.entities.filter(e=>e.type==="line");
+    const unused=new Set(lines.map(e=>e.id));
+    const profiles=[];
+    const same=(a,b)=>dist(a,b)<=tolerance;
+    while(unused.size){
+      const firstId=unused.values().next().value;
+      const first=lines.find(e=>e.id===firstId);
+      const points=[{...first.data.start},{...first.data.end}];
+      unused.delete(first.id);
+      let guard=0;
+      while(!same(points.at(-1),points[0])){
+        if(++guard>lines.length+1)throw new Error("No se pudo cerrar el contorno del boceto");
+        const tail=points.at(-1);
+        const candidates=lines.filter(e=>unused.has(e.id)).flatMap(e=>{
+          const out=[];
+          if(same(e.data.start,tail))out.push({entity:e,next:e.data.end});
+          if(same(e.data.end,tail))out.push({entity:e,next:e.data.start});
+          return out;
+        });
+        if(candidates.length===0)throw new Error("Hay líneas abiertas: el perfil no está cerrado");
+        if(candidates.length>1)throw new Error("Hay una bifurcación ambigua en el contorno");
+        const chosen=candidates[0];
+        unused.delete(chosen.entity.id);
+        points.push({...chosen.next});
+      }
+      points.pop();
+      if(points.length<3)throw new Error("Un perfil cerrado necesita al menos tres vértices");
+      profiles.push({kind:"polygon",plane:this.plane,points});
+    }
+    for(const circle of this.entities.filter(e=>e.type==="circle")){
+      profiles.push({kind:"circle",plane:this.plane,center:{...circle.data.center},radius:circle.data.radius,sourceEntityId:circle.id});
+    }
+    return profiles;
+  }
   validate(){
     const errors=[];
     for(const c of this.constraints){
