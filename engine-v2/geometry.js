@@ -104,3 +104,39 @@ export function extrudePolygon(points, depth, plane = Plane.XY()) {
     metadata:{operation:"extrude",depth,profileVertexCount:n,units:"mm",plane:{origin:plane.origin.toJSON(),normal:plane.normal.toJSON()}}
   };
 }
+
+/** Extrude a circular sketch region into a closed triangle mesh. */
+export function extrudeCircle(center, radius, depth, plane = Plane.XY(), segments = 64) {
+  if (!Number.isFinite(depth) || Math.abs(depth) < EPSILON) throw new RangeError("La profundidad debe ser distinta de cero");
+  if (!Number.isFinite(radius) || radius <= EPSILON) throw new RangeError("El radio debe ser positivo");
+  if (!Number.isInteger(segments) || segments < 8 || segments > 512) throw new RangeError("La resolución del círculo debe estar entre 8 y 512 segmentos");
+  const c={x:Number(center.x),y:Number(center.y)};
+  if(!Number.isFinite(c.x)||!Number.isFinite(c.y))throw new TypeError("Centro del círculo no válido");
+  const vertices=[];
+  const push=v=>vertices.push(v.x,v.y,v.z);
+  for(let i=0;i<segments;i++){
+    const a=2*Math.PI*i/segments;
+    push(plane.toWorld({x:c.x+radius*Math.cos(a),y:c.y+radius*Math.sin(a)}));
+  }
+  for(let i=0;i<segments;i++){
+    const a=2*Math.PI*i/segments;
+    push(plane.toWorld({x:c.x+radius*Math.cos(a),y:c.y+radius*Math.sin(a)}).add(plane.normal.scale(depth)));
+  }
+  const triangles=[];
+  for(let i=1;i<segments-1;i++){
+    triangles.push(0,i+1,i);
+    triangles.push(segments,segments+i,segments+i+1);
+  }
+  for(let i=0;i<segments;i++){
+    const j=(i+1)%segments;
+    triangles.push(i,j,segments+j,i,segments+j,segments+i);
+  }
+  return {kind:"triangle-mesh",vertices,triangles,metadata:{operation:"extrude-circle",depth,radius,segments,units:"mm",plane:{origin:plane.origin.toJSON(),normal:plane.normal.toJSON()}}};
+}
+
+/** Dispatch an extracted sketch profile to its matching extrusion routine. */
+export function extrudeProfile(profile, depth, plane = Plane.XY(), options = {}) {
+  if(profile?.kind==="polygon") return extrudePolygon(profile.points,depth,plane);
+  if(profile?.kind==="circle") return extrudeCircle(profile.center,profile.radius,depth,plane,options.segments??64);
+  throw new TypeError("Tipo de perfil no compatible para extrusión");
+}
