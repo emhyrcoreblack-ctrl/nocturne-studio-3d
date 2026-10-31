@@ -1,0 +1,23 @@
+name: CAD engine tests
+on:
+  push:
+    paths:
+      - "engine-v2/**"
+      - ".github/workflows/engine-tests.yml"
+  pull_request:
+    paths:
+      - "engine-v2/**"
+      - ".github/workflows/engine-tests.yml"
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine-v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
