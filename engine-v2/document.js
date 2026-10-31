@@ -2,7 +2,7 @@
  * Parametric document and feature history foundation.
  * Geometry kernel adapters can be attached without coupling to the UI.
  */
-import { extrudePolygon, Plane } from "./geometry.js";
+import { extrudeProfile, Plane } from "./geometry.js";
 
 const clone = value => structuredClone(value);
 
@@ -71,7 +71,7 @@ export class CadDocument {
       if(!f.enabled) continue;
       try {
         if(f.type==="extrude") {
-          f.result=extrudePolygon(f.parameters.profile,f.parameters.depth,planeFrom(f.parameters.plane));
+          f.result=extrudeProfile(f.parameters.profile,f.parameters.depth,planeFrom(f.parameters.plane ?? f.parameters.profile.plane),f.parameters.options);
           body=f.result;
         } else if(f.type==="import-mesh") {
           body=clone(f.parameters.mesh);
