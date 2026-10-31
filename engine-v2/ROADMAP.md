@@ -1,24 +1,28 @@
 # Plan de implementación del motor
 
-## Base creada
-- [x] Separación del motor respecto a la interfaz antigua.
-- [x] Tipos vectoriales y planos de trabajo XY/XZ/YZ.
+## Implementado en la fundación
+- [x] Núcleo separado de la interfaz anterior.
+- [x] Vectores y planos XY/XZ/YZ.
 - [x] Validación de perfiles poligonales simples.
-- [x] Extrusión inicial a malla triangular para perfiles convexos.
-- [x] Documento CAD serializable y lista de características.
-- [x] Cursor de historial, undo y redo del documento.
+- [x] Extrusión inicial a malla triangular (solo perfiles convexos).
+- [x] Documento CAD serializable, características y cursor de historial.
+- [x] Undo/redo del documento.
+- [x] Entidades de boceto: línea, rectángulo, círculo y arco.
+- [x] Restricciones básicas: horizontal, vertical, coincidencia, distancia, radio e igualdad (validación, no solver).
+- [x] Cotas anotativas y serialización de bocetos.
+- [x] Primer conjunto de pruebas con Node test runner.
 
-## Siguientes hitos
-1. Pruebas automatizadas de geometría, orientación y regeneración.
-2. Triangulación robusta de perfiles cóncavos y agujeros.
-3. Adaptador de kernel B-rep exacto para sólidos y operaciones booleanas.
-4. Bocetos con entidades (línea, arco, círculo, rectángulo) y restricciones/cotas.
+## Próximos hitos
+1. Ejecutar la suite en CI y corregir cualquier fallo.
+2. Solucionador paramétrico de restricciones y cotas.
+3. Perfiles cóncavos y agujeros con triangulación robusta.
+4. Adaptador de kernel B-rep exacto para sólidos y booleanos.
 5. Revolución, barrido, loft, vaciado, filete y chaflán.
-6. Edición de mallas importadas: selección de vértices/aristas/caras y operaciones topológicas.
+6. Edición topológica de mallas importadas (STL).
 7. Transformaciones, patrones, espejos y ensamblajes.
-8. Importadores/exportadores y persistencia de documentos.
-9. Suite de pruebas geométricas y de regresión.
-10. Interfaz Android inspirada en Shapr3D, solo después de validar el motor.
+8. Importación/exportación y persistencia.
+9. Pruebas geométricas y de regresión más amplias.
+10. Interfaz Android inspirada en Shapr3D, después de validar el motor.
 
-## Limitaciones explícitas actuales
-Este primer extrusor no es un kernel CAD industrial: genera malla triangular, no geometría B-rep exacta; acepta perfiles convexos sin agujeros. No afirmar que booleanos, filetes, superficies o edición STL estén implementados hasta que existan y pasen pruebas.
+## Límites actuales
+Las restricciones se comprueban, pero no ajustan automáticamente la geometría. La extrusión crea malla, no B-rep exacto, y solo acepta perfiles convexos sin agujeros. No anunciar como implementadas las operaciones que aún no existen.
