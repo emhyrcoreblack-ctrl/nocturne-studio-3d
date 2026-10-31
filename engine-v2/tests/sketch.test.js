@@ -33,3 +33,34 @@ test("serializa y restaura el boceto",()=>{
  const restored=Sketch.fromJSON(s.toJSON());
  assert.equal(restored.plane,"XZ");assert.equal(restored.entities.length,1);
 });
+
+test("solver ajusta automáticamente horizontal y distancia",()=>{
+ const s=new Sketch();const line=s.addLine({x:0,y:0},{x:3,y:4});
+ s.addConstraint("horizontal",[line.id]);
+ s.addConstraint("distance",[line.id],{value:10});
+ const result=s.solve();
+ assert.equal(result.converged,true);
+ assert.ok(Math.abs(line.data.end.y-line.data.start.y)<1e-9);
+ assert.ok(Math.abs(Math.hypot(line.data.end.x-line.data.start.x,line.data.end.y-line.data.start.y)-10)<1e-6);
+});
+test("solver ajusta radio y longitud igual",()=>{
+ const s=new Sketch();
+ const circle=s.addCircle({x:0,y:0},2);
+ const arc=s.addArc({x:5,y:0},3,0,Math.PI);
+ s.addConstraint("radius",[circle.id],{value:7});
+ s.addConstraint("equal",[circle.id,arc.id]);
+ const result=s.solve();
+ assert.equal(result.converged,true);
+ assert.equal(circle.data.radius,7);
+ assert.equal(arc.data.radius,7);
+});
+test("solver une extremos coincidentes",()=>{
+ const s=new Sketch();
+ const a=s.addLine({x:0,y:0},{x:5,y:0});
+ const b=s.addLine({x:5.2,y:0.1},{x:8,y:2});
+ s.addConstraint("coincident",[a.id,b.id]);
+ const result=s.solve();
+ assert.equal(result.converged,true);
+ const endpoints=e=>[e.data.start,e.data.end];
+ assert.ok(endpoints(a).some(p=>endpoints(b).some(q=>Math.hypot(p.x-q.x,p.y-q.y)<1e-9)));
+});
