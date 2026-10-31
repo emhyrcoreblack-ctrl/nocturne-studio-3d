@@ -1,18 +1,26 @@
 # NOCTURNE CAD Engine v2
 
-Esta carpeta es el núcleo nuevo del proyecto. No reutiliza la aplicación monolítica anterior ni su interfaz. La interfaz Android inspirada en Shapr3D se construirá después, consumiendo esta API.
+Núcleo nuevo, independiente de la aplicación monolítica anterior. La futura interfaz Android inspirada en Shapr3D consumirá esta API; no hay componentes visuales en este motor.
 
 ## Principios
-- Geometría y documento independientes de la interfaz.
+- Geometría/documento desacoplados de la interfaz.
 - Unidades internas en milímetros.
-- Operaciones deterministas y validación explícita.
-- Historial de características con parámetros serializables.
-- Diferenciar B-rep paramétrico de mallas trianguladas importadas.
-- Ninguna cámara, panel, botón ni dependencia visual dentro del núcleo.
+- Validación explícita y datos serializables.
+- Historial paramétrico por características.
+- Separación entre sólidos B-rep y mallas trianguladas.
 
-## Módulos iniciales
-- `geometry.js`: vectores, planos, perfiles y extrusión poligonal básica.
-- `document.js`: documento CAD, características, regeneración e historial undo/redo.
+## Módulos
+- `geometry.js`: vectores 3D, planos de trabajo, validación de perfiles y extrusión poligonal inicial.
+- `sketch.js`: líneas, rectángulos, círculos, arcos, restricciones básicas, cotas y serialización de bocetos.
+- `document.js`: documento CAD, características, regeneración y undo/redo.
+- `tests/`: pruebas automatizadas con Node.js.
 
-## Estado
-Fundación inicial. La extrusión poligonal produce una malla triangular cerrada para prototipado y exportación; todavía no es un kernel B-rep exacto. Las operaciones exactas (booleanos, filetes, chaflanes y superficies) requieren integrar un kernel CAD apropiado en una fase posterior.
+## Ejecutar pruebas
+Requiere Node.js 20 o superior:
+```sh
+cd engine-v2
+npm test
+```
+
+## Limitaciones conocidas
+La extrusión actual produce una malla triangular y solo admite perfiles convexos simples. No es todavía un kernel B-rep exacto. Las restricciones actuales se validan; todavía no existe un solucionador paramétrico que mueva geometría para satisfacerlas. Booleanos, filetes, chaflanes, barridos, lofts y edición topológica de STL siguen pendientes.
