@@ -12,6 +12,9 @@
 - [x] Cotas anotativas y serialización de bocetos.
 - [x] Primer conjunto de pruebas con Node test runner.
 
+- [x] Detección inicial de perfiles cerrados a partir de bucles de líneas.
+- [x] Detección de círculos como perfiles analíticos independientes.
+
 ## Próximos hitos
 1. Ejecutar la suite en CI y corregir cualquier fallo.
 2. Solucionador paramétrico de restricciones y cotas.
