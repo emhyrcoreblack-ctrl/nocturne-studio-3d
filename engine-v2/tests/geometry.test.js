@@ -45,6 +45,7 @@ test("las extrusiones poligonales son cerradas en ambos sentidos de dibujo",()=>
   assert.equal(report.closed,true);
   assert.equal(report.boundaryEdges,0);
   assert.equal(report.nonManifoldEdges,0);
+  assert.equal(report.inconsistentWindingEdges,0);
  }
 });
 test("la extrusión circular produce una malla cerrada",()=>{
@@ -68,9 +69,20 @@ test("triangula y extruye perfiles cóncavos en ambos sentidos",()=>{
   assert.equal(report.closed,true);
   assert.equal(report.boundaryEdges,0);
   assert.equal(report.nonManifoldEdges,0);
+  assert.equal(report.inconsistentWindingEdges,0);
  }
 });
 test("rechaza perfil cóncavo degenerado sin triangulación",()=>{
  const points=[{x:0,y:0},{x:4,y:0},{x:4,y:4},{x:2,y:2},{x:0,y:4}];
  assert.equal(inspectMeshTopology(extrudePolygon(points,2)).closed,true);
+});
+
+test("detecta caras con orientación inconsistente",()=>{
+ const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0,1,1,0],triangles:[0,1,2,1,2,3]};
+ const report=inspectMeshTopology(mesh);
+ assert.ok(report.inconsistentWindingEdges>0);
+});
+test("detecta triángulos geométricamente degenerados",()=>{
+ const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,2,0,0],triangles:[0,1,2]};
+ assert.equal(inspectMeshTopology(mesh).degenerateTriangles,1);
 });
