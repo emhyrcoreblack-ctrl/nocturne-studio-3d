@@ -135,7 +135,7 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <div class="field"><label for="height">Altura de extrusión <output id="heightOut">32 mm</output></label><input id="height" type="range" min="5" max="80" value="32"></div>
 <div class="field"><label for="sketchPlane">Plano de boceto</label><select id="sketchPlane"><option value="XY">XY · Superior</option><option value="XZ">XZ · Frontal</option><option value="YZ">YZ · Lateral</option></select></div>
 <div class="field"><label for="drawTool">Herramienta de boceto</label><select id="drawTool"><option value="rectangle">Rectángulo</option><option value="circle">Círculo</option><option value="polyline">Polígono</option></select></div>
-<div class="actions"><button id="startDraw">Iniciar dibujo táctil</button><button id="finishDraw" disabled>Cerrar perfil</button></div>
+<div class="actions"><button id="startDraw">Iniciar dibujo táctil</button><button id="finishDraw" disabled>Cerrar perfil</button><button id="cancelDraw" disabled>Cancelar dibujo</button></div>
 <div class="actions"><button id="createSketch">Perfil de prueba</button><button id="extrudeSketch" disabled>Extruir perfil</button></div>
 <p class="note" id="drawHelp">Dibuja directamente sobre el plano 3D con toques.</p>
 <div class="actions"><button id="reset">Restablecer vista</button><button id="wire">Ver aristas</button></div>
@@ -176,7 +176,8 @@ const axes=new THREE.AxesHelper(24);axes.position.set(-48,.1,-48);scene.add(axes
 const material=new THREE.MeshStandardMaterial({color:0x8eafd7,metalness:.48,roughness:.28});
 let solid=null,wire=null,wireOn=false;
 const cadDocument=new CadDocument("NOCTURNE");
-let importedMesh=null,selectionHelper=null,faceHighlight=null,activeSketch=null,sketchPreview=null,activeProfile=null;\nlet drawingActive=false,drawingPoints=[],drawingPlane=null,drawingOverlay=null;
+let importedMesh=null,selectionHelper=null,faceHighlight=null,activeSketch=null,sketchPreview=null,activeProfile=null;
+let drawingActive=false,drawingPoints=[],drawingPlane=null,drawingOverlay=null;
 const $=id=>document.getElementById(id);
 function applyTranslation(){
  if(!solid)return;
@@ -216,8 +217,15 @@ function drawOverlay(){
  const pts=drawingPoints.map(p=>{const v=drawingPlane.toWorld(p);return new THREE.Vector3(v.x,v.y,v.z);});
  drawingOverlay=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x8de0bd,depthTest:false}));drawingOverlay.renderOrder=15;scene.add(drawingOverlay);
 }
+function cancelTouchSketch(message="Dibujo cancelado"){
+ drawingActive=false;drawingPoints=[];drawingPlane=null;
+ clearDrawingOverlay();clearSketchPreview();activeSketch=null;activeProfile=null;
+ $("finishDraw").disabled=true;$("extrudeSketch").disabled=true;$("cancelDraw").disabled=true;
+ $("drawHelp").textContent="Dibujo descartado. Elige herramienta y plano para comenzar de nuevo.";
+ $("status").textContent="● "+message;
+}
 function beginTouchSketch(){
- clearSketchPreview();clearDrawingOverlay();drawingPoints=[];drawingPlane=planeForSketch($("sketchPlane").value);drawingActive=true;activeSketch=null;activeProfile=null;
+ clearSketchPreview();clearDrawingOverlay();drawingPoints=[];drawingPlane=planeForSketch($("sketchPlane").value);drawingActive=true;activeSketch=null;activeProfile=null;$("cancelDraw").disabled=false;
  $("extrudeSketch").disabled=true;$("finishDraw").disabled=true;
  $("drawHelp").textContent="Rectángulo: toca dos esquinas. Círculo: centro y radio. Polígono: toca sus vértices y pulsa Cerrar perfil.";
  $("status").textContent="● Dibujo táctil activo · "+$("drawTool").selectedOptions[0].text;
@@ -231,7 +239,7 @@ function finishTouchSketch(){
   else{if(drawingPoints.length<3)throw new Error("Marca al menos tres vértices");for(let i=0;i<drawingPoints.length;i++)sketch.addLine(drawingPoints[i],drawingPoints[(i+1)%drawingPoints.length]);}
   const valid=sketch.validate();if(!valid.valid)throw new Error(valid.errors.join("; "));
   const profiles=sketch.getClosedProfiles();if(profiles.length!==1)throw new Error("Se requiere un único perfil cerrado");
-  activeSketch=sketch;activeProfile=profiles[0];drawingActive=false;clearDrawingOverlay();
+  activeSketch=sketch;activeProfile=profiles[0];drawingActive=false;$("cancelDraw").disabled=true;clearDrawingOverlay();
   const pts=activeProfile.kind==="circle"?Array.from({length:96},(_,i)=>({x:activeProfile.center.x+activeProfile.radius*Math.cos(i*Math.PI*2/96),y:activeProfile.center.y+activeProfile.radius*Math.sin(i*Math.PI*2/96)})):activeProfile.points;
   const world=pts.map(p=>{const v=drawingPlane.toWorld(p);return new THREE.Vector3(v.x,v.y,v.z);});world.push(world[0]);
   sketchPreview=new THREE.Line(new THREE.BufferGeometry().setFromPoints(world),new THREE.LineBasicMaterial({color:0x8de0bd,depthTest:false}));sketchPreview.renderOrder=16;scene.add(sketchPreview);
@@ -276,7 +284,7 @@ function extrudeActiveSketch(){
  try{
   if(!activeSketch||!activeProfile)throw new Error("Primero crea un boceto cerrado");
   const mesh=extrudeProfile(activeProfile,+$("height").value,planeForSketch(activeSketch.plane));
-  const report=showMesh(mesh,{fit:true});clearSketchPreview();activeSketch=null;activeProfile=null;$("extrudeSketch").disabled=true;
+  const report=showMesh(mesh,{fit:true});clearSketchPreview();activeSketch=null;activeProfile=null;$("extrudeSketch").disabled=true;$("cancelDraw").disabled=true;
   importedMesh=null;["shape","width","depth","radius","height","sketchPlane"].forEach(id=>$(id).disabled=false);
   $("status").textContent=report.closed?"● Boceto extruido · sólido cerrado":"● Extrusión creada · revisar topología";
  }catch(error){$("status").textContent="Error de extrusión: "+error.message;}
@@ -332,6 +340,9 @@ function build(){
 $("createSketch").addEventListener("click",createSketch);
 $("startDraw").addEventListener("click",beginTouchSketch);
 $("finishDraw").addEventListener("click",finishTouchSketch);
+$("cancelDraw").addEventListener("click",()=>cancelTouchSketch());
+$("drawTool").addEventListener("change",()=>{if(drawingActive||activeSketch)cancelTouchSketch("Boceto reiniciado al cambiar herramienta");});
+$("sketchPlane").addEventListener("change",()=>{if(drawingActive||activeSketch)cancelTouchSketch("Boceto reiniciado al cambiar de plano");});
 $("sketchTool").addEventListener("click",()=>{panel.classList.remove("collapsed");panelToggle.textContent="Ocultar propiedades ×";if(window.matchMedia("(max-width:760px)").matches)panelToggle.style.bottom="calc(54dvh + 18px)";beginTouchSketch();});
 $("extrudeSketch").addEventListener("click",extrudeActiveSketch);
 ["moveX","moveY","moveZ"].forEach(id=>$(id).addEventListener("input",applyTranslation));
