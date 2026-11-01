@@ -21,7 +21,7 @@ test("rechaza tolerancia inválida",()=>{
 });
 
 test("une vértices próximos aunque estén en celdas espaciales vecinas",()=>{
- const mesh={kind:"triangle-mesh",vertices:[0.99,0,0,2,0,0,0,1,0,1.01,0,0],triangles:[0,1,2,3,1,2]};
+ const mesh={kind:"triangle-mesh",vertices:[0.99,0,0,1.01,0,0,2,0,0,0,1,0],triangles:[0,1,2,0,2,3]};
  const r=repairTriangleMesh(mesh,{tolerance:0.05});
  assert.equal(r.report.weldedVertices,1);
  assert.equal(r.report.triangleCount,1);
