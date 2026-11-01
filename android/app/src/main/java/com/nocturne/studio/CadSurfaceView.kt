@@ -12,7 +12,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     private var lastSpan = 0f
     @Volatile private var sketchMode = false
     @Volatile private var selectionMode = false
-    var onSelectionChanged: ((Boolean) -> Unit)? = null
+    var onSelectionChanged: ((Int) -> Unit)? = null
     private var downX=0f
     private var downY=0f
 
@@ -64,7 +64,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
                 return true
             }
             MotionEvent.ACTION_POINTER_UP -> { lastSpan=0f; return true }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,false,true) } } else if (selectionMode && kotlin.math.hypot((event.x-downX).toDouble(),(event.y-downY).toDouble())<18.0) { val tx=event.x; val ty=event.y; queueEvent { val selected=cadRenderer.selectAt(tx,ty); post { onSelectionChanged?.invoke(selected) } } }; lastSpan=0f; return true }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,false,true) } } else if (selectionMode && kotlin.math.hypot((event.x-downX).toDouble(),(event.y-downY).toDouble())<18.0) { val tx=event.x; val ty=event.y; queueEvent { val face=cadRenderer.selectAt(tx,ty); post { onSelectionChanged?.invoke(face) } } }; lastSpan=0f; return true }
         }
         return true
     }
