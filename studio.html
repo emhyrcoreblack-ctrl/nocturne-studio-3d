@@ -92,7 +92,7 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <div class="workspace">
 <section class="viewport" aria-label="Visor tridimensional interactivo">
 <div class="cad-top"><div class="cad-brand">NOCTURNE <span>STUDIO 3D</span></div><button class="cad-pill" id="importStl">＋ Importar STL</button><input id="stlFile" type="file" accept=".stl,model/stl" hidden><button class="cad-pill" id="newModel">＋ Nuevo</button><button class="cad-pill secondary">↶ Deshacer</button><button class="cad-pill secondary">↷ Rehacer</button></div>
-<div class="cad-rail"><button class="cad-tool active" data-select-mode="object" title="Seleccionar objeto">↖</button><button class="cad-tool" data-select-mode="face" title="Seleccionar cara">▰</button><button class="cad-tool" data-select-mode="edge" title="Seleccionar arista">／</button><button class="cad-tool" title="Boceto (en desarrollo)">✎</button><button class="cad-tool" title="Rectángulo (en desarrollo)">▱</button><button class="cad-tool" title="Extruir (en desarrollo)">⬆</button></div>
+<div class="cad-rail"><button class="cad-tool active" data-select-mode="object" title="Seleccionar objeto">↖</button><button class="cad-tool" data-select-mode="face" title="Seleccionar cara">▰</button><button class="cad-tool" data-select-mode="edge" title="Seleccionar arista">／</button><button class="cad-tool" id="sketchTool" title="Crear boceto">✎</button><button class="cad-tool" title="Rectángulo (en desarrollo)">▱</button><button class="cad-tool" title="Extruir (en desarrollo)">⬆</button></div>
 <div class="view-label">ESPACIO DE DISEÑO · MM</div>
 <div class="orientation-widget" aria-label="Cubo de orientación 3D"><div class="orientation-cube" id="orientationCube">
 <button class="orientation-face front" data-orientation="front">FRONT</button>
@@ -110,6 +110,8 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <div class="field" id="depthField"><label for="depth">Fondo <output id="depthOut">28 mm</output></label><input id="depth" type="range" min="10" max="80" value="28"></div>
 <div class="field" id="radiusField" hidden><label for="radius">Radio <output id="radiusOut">20 mm</output></label><input id="radius" type="range" min="5" max="40" value="20"></div>
 <div class="field"><label for="height">Altura de extrusión <output id="heightOut">32 mm</output></label><input id="height" type="range" min="5" max="80" value="32"></div>
+<div class="field"><label for="sketchPlane">Plano de boceto</label><select id="sketchPlane"><option value="XY">XY · Superior</option><option value="XZ">XZ · Frontal</option><option value="YZ">YZ · Lateral</option></select></div>
+<div class="actions"><button id="createSketch">Crear boceto</button><button id="extrudeSketch" disabled>Extruir boceto</button></div>
 <div class="actions"><button id="reset">Restablecer vista</button><button id="wire">Ver aristas</button></div>
 <div class="field"><label for="moveX">Mover X <output id="moveXOut">0 mm</output></label><input id="moveX" type="range" min="-100" max="100" value="0"></div>
 <div class="field"><label for="moveY">Mover Y <output id="moveYOut">0 mm</output></label><input id="moveY" type="range" min="-100" max="100" value="0"></div>
@@ -130,7 +132,8 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <script type="module">
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { extrudePolygon, extrudeCircle, inspectMeshTopology } from "./engine-v2/geometry.js";
+import { extrudePolygon, extrudeCircle, extrudeProfile, inspectMeshTopology, Plane } from "./engine-v2/geometry.js";
+import { Sketch } from "./engine-v2/sketch.js";
 import { importSTL } from "./engine-v2/stl.js";
 import { CadDocument } from "./engine-v2/document.js";
 
@@ -147,7 +150,7 @@ const axes=new THREE.AxesHelper(24);axes.position.set(-48,.1,-48);scene.add(axes
 const material=new THREE.MeshStandardMaterial({color:0x8eafd7,metalness:.48,roughness:.28});
 let solid=null,wire=null,wireOn=false;
 const cadDocument=new CadDocument("NOCTURNE");
-let importedMesh=null,selectionHelper=null,faceHighlight=null;
+let importedMesh=null,selectionHelper=null,faceHighlight=null,activeSketch=null,sketchPreview=null,activeProfile=null;
 const $=id=>document.getElementById(id);
 function applyTranslation(){
  if(!solid)return;
@@ -173,6 +176,44 @@ function exportCurrentSTL(){
  }
  const url=URL.createObjectURL(new Blob([buffer],{type:"model/stl"})),link=document.createElement("a");
  link.href=url;link.download="nocturne-modelo.stl";link.click();URL.revokeObjectURL(url);
+}
+function planeForSketch(name){
+ return name==="XZ"?Plane.XZ():name==="YZ"?Plane.YZ():Plane.XY();
+}
+function clearSketchPreview(){
+ if(sketchPreview){scene.remove(sketchPreview);sketchPreview.geometry.dispose();sketchPreview.material.dispose();sketchPreview=null;}
+}
+function createSketch(){
+ try{
+  clearSketchPreview();
+  const planeName=$("sketchPlane").value,plane=planeForSketch(planeName);
+  const sketch=new Sketch("Boceto "+planeName,planeName);
+  const circle=$("shape").value==="cylinder";
+  const w=+$("width").value,d=+$("depth").value,r=+$("radius").value;
+  if(circle)sketch.addCircle({x:0,y:0},r);
+  else sketch.addRectangle({x:-w/2,y:-d/2},w,d);
+  const validation=sketch.validate();if(!validation.valid)throw new Error(validation.errors.join("; "));
+  const profiles=sketch.getClosedProfiles();if(profiles.length!==1)throw new Error("El boceto debe contener un único perfil cerrado");
+  activeSketch=sketch;activeProfile=profiles[0];
+  let coords=[];
+  if(activeProfile.kind==="circle"){
+   for(let i=0;i<96;i++){const a=i*Math.PI*2/96;coords.push(plane.toWorld({x:activeProfile.center.x+activeProfile.radius*Math.cos(a),y:activeProfile.center.y+activeProfile.radius*Math.sin(a)}));}
+  }else coords=activeProfile.points.map(p=>plane.toWorld(p));
+  const lineGeo=new THREE.BufferGeometry().setFromPoints([...coords,coords[0]]);
+  sketchPreview=new THREE.Line(lineGeo,new THREE.LineBasicMaterial({color:0x8de0bd,depthTest:false}));
+  sketchPreview.renderOrder=9;scene.add(sketchPreview);
+  $("extrudeSketch").disabled=false;
+  $("status").textContent="● Boceto cerrado creado en plano "+planeName+" · "+(activeProfile.kind==="circle"?"círculo":"perfil poligonal");
+ }catch(error){$("extrudeSketch").disabled=true;$("status").textContent="Error de boceto: "+error.message;}
+}
+function extrudeActiveSketch(){
+ try{
+  if(!activeSketch||!activeProfile)throw new Error("Primero crea un boceto cerrado");
+  const mesh=extrudeProfile(activeProfile,+$("height").value,planeForSketch(activeSketch.plane));
+  const report=showMesh(mesh,{fit:true});clearSketchPreview();activeSketch=null;activeProfile=null;$("extrudeSketch").disabled=true;
+  importedMesh=null;["shape","width","depth","radius","height","sketchPlane"].forEach(id=>$(id).disabled=false);
+  $("status").textContent=report.closed?"● Boceto extruido · sólido cerrado":"● Extrusión creada · revisar topología";
+ }catch(error){$("status").textContent="Error de extrusión: "+error.message;}
 }
 function clearSelection(){
  if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
@@ -222,6 +263,9 @@ function build(){
  }catch(e){$("status").textContent="Error geométrico: "+e.message;}
 }
 ["shape","width","depth","radius","height"].forEach(id=>$(id).addEventListener("input",build));
+$("createSketch").addEventListener("click",createSketch);
+$("sketchTool").addEventListener("click",()=>{panel.classList.remove("collapsed");createSketch();});
+$("extrudeSketch").addEventListener("click",extrudeActiveSketch);
 ["moveX","moveY","moveZ"].forEach(id=>$(id).addEventListener("input",applyTranslation));
 $("centerModel").addEventListener("click",()=>{
  if(!solid)return;const box=modelBounds(),center=box.getCenter(new THREE.Vector3());
