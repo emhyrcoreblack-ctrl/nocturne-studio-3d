@@ -77,14 +77,14 @@ class CadRenderer : GLSurfaceView.Renderer {
         GLES20.glUseProgram(program)
         GLES20.glUniformMatrix4fv(mvpHandle,1,false,mvp,0)
         draw(grid,gridCount,GLES20.GL_LINES)
-        if (extruded && sketchStart != null && sketchEnd != null) {
+        if (extruded && sketchStart != null && sketchEnd != null && sketchType != "Línea") {
             val vertices = if (sketchType == "Círculo") circleExtrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight) else extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight)
             val mesh = buffer(vertices)
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
         } else if (primitive==0) draw(cube,cubeCount,GLES20.GL_TRIANGLES)
         else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
         if (sketchStart != null && sketchEnd != null && !extruded) {
-            val outline = buffer(if (sketchType == "Círculo") circleLines(sketchStart!!, sketchEnd!!) else rectangleLines(sketchStart!!, sketchEnd!!))
+            val outline = buffer(when(sketchType) { "Círculo" -> circleLines(sketchStart!!, sketchEnd!!); "Línea" -> lineVertices(sketchStart!!, sketchEnd!!); else -> rectangleLines(sketchStart!!, sketchEnd!!) })
             GLES20.glLineWidth(3f); draw(outline, outline.limit()/7, GLES20.GL_LINES)
         }
     }
@@ -109,7 +109,7 @@ class CadRenderer : GLSurfaceView.Renderer {
         if (down) { sketchStart=p; sketchEnd=p; sketchDragging=true; extruded=false }
         else if (sketchDragging) { sketchEnd=p; if (finish) sketchDragging=false }
     }
-    fun extrudeSketch() { if (sketchStart != null && sketchEnd != null) { extruded=true; primitive=2 } }
+    fun extrudeSketch() { if (sketchStart != null && sketchEnd != null && sketchType != "Línea") { extruded=true; primitive=2 } }
     fun setExtrusionHeight(value:Float) { extrusionHeight=value.coerceIn(0.1f,8f) }
     fun transform(action:String) {
         when(action) {
@@ -134,6 +134,7 @@ class CadRenderer : GLSurfaceView.Renderer {
         val t=-near[1]/dy; if (t<0f) return null
         return floatArrayOf(near[0]+t*(far[0]-near[0]),0f,near[2]+t*(far[2]-near[2]))
     }
+    private fun lineVertices(a:FloatArray,b:FloatArray):FloatArray { val c=floatArrayOf(.35f,.78f,1f,1f); return floatArrayOf(a[0],a[1],a[2],c[0],c[1],c[2],c[3],b[0],b[1],b[2],c[0],c[1],c[2],c[3]) }
     private fun rectangleLines(a:FloatArray,b:FloatArray):FloatArray {
         val x0=a[0]; val z0=a[2]; val x1=b[0]; val z1=b[2]
         val c=floatArrayOf(.35f,.78f,1f,1f); val o=ArrayList<Float>()
