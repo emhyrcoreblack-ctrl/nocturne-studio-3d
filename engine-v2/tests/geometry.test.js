@@ -86,3 +86,23 @@ test("detecta triángulos geométricamente degenerados",()=>{
  const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,2,0,0],triangles:[0,1,2]};
  assert.equal(inspectMeshTopology(mesh).degenerateTriangles,1);
 });
+
+test("mantiene normales exteriores en extrusiones positivas y negativas",()=>{
+ const polygon=[{x:0,y:0},{x:6,y:0},{x:6,y:4},{x:0,y:4}];
+ for(const depth of [5,-5]){
+  const poly=inspectMeshTopology(extrudePolygon(polygon,depth));
+  const cyl=inspectMeshTopology(extrudeCircle({x:0,y:0},3,depth,Plane.XY(),32));
+  assert.equal(poly.orientation,"outward");
+  assert.equal(cyl.orientation,"outward");
+  assert.ok(poly.signedVolume>0);
+  assert.ok(cyl.signedVolume>0);
+ }
+});
+test("mantiene orientación exterior en planos XZ e YZ",()=>{
+ const polygon=[{x:0,y:0},{x:5,y:0},{x:5,y:3},{x:0,y:3}];
+ for(const plane of [Plane.XZ(),Plane.YZ()]){
+  const report=inspectMeshTopology(extrudePolygon(polygon,4,plane));
+  assert.equal(report.closed,true);
+  assert.equal(report.orientation,"outward");
+ }
+});
