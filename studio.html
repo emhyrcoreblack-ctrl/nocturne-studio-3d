@@ -143,8 +143,25 @@ const axes=new THREE.AxesHelper(24);axes.position.set(-48,.1,-48);scene.add(axes
 const material=new THREE.MeshStandardMaterial({color:0x8eafd7,metalness:.48,roughness:.28});
 let solid=null,wire=null,wireOn=false;
 const cadDocument=new CadDocument("NOCTURNE");
-let importedMesh=null,selectionHelper=null;
+let importedMesh=null,selectionHelper=null,faceHighlight=null;
 const $=id=>document.getElementById(id);
+function clearSelection(){
+ if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
+ if(faceHighlight){scene.remove(faceHighlight);faceHighlight.geometry.dispose();faceHighlight.material.dispose();faceHighlight=null;}
+}
+function modelBounds(){
+ const box=new THREE.Box3();
+ if(solid) box.setFromObject(solid);
+ if(box.isEmpty()) box.setFromCenterAndSize(new THREE.Vector3(0,12,0),new THREE.Vector3(40,32,28));
+ return box;
+}
+function fitModel(){
+ const box=modelBounds(),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
+ const span=Math.max(size.x,size.y,size.z,1),distance=span*2.5;
+ controls.target.copy(center);
+ camera.position.copy(center).add(new THREE.Vector3(distance*.78,distance*.62,distance));
+ camera.near=Math.max(.01,span/1000);camera.far=span*100;camera.updateProjectionMatrix();controls.update();
+}
 function showMesh(mesh,{fit=false}={}){
  const report=inspectMeshTopology(mesh),geo=new THREE.BufferGeometry();
  geo.setAttribute("position",new THREE.Float32BufferAttribute(mesh.vertices,3));geo.setIndex(mesh.triangles);
@@ -153,7 +170,7 @@ function showMesh(mesh,{fit=false}={}){
  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x17283d,transparent:true,opacity:.8}));
  edges.visible=wireOn;next.add(edges);
  if(solid){scene.remove(solid);solid.geometry.dispose();solid.children[0]?.geometry?.dispose();}
- if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
+ clearSelection();
  solid=next;wire=edges;scene.add(solid);
  $("vertices").textContent=report.vertexCount;$("triangles").textContent=report.triangleCount;$("edges").textContent=report.boundaryEdges;
  $("closed").textContent=report.closed?"Cerrado":"Revisar";$("closed").style.color=report.closed?"#8de0bd":"#ff9a8b";
@@ -204,28 +221,37 @@ renderer.domElement.addEventListener("pointerup",event=>{
  raycaster.setFromCamera(pointer,camera);
  const hits=raycaster.intersectObject(solid,false);
  if(hits.length){
-  if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();}
+  clearSelection();
   selectionHelper=new THREE.BoxHelper(solid,0x8de0bd);selectionHelper.material.depthTest=false;selectionHelper.material.transparent=true;selectionHelper.material.opacity=.95;selectionHelper.renderOrder=10;scene.add(selectionHelper);
-  const face=hits[0].faceIndex;
-  $("status").textContent="● Objeto seleccionado · cara "+(face+1)+" · "+(importedMesh?"STL importado":"sólido paramétrico");
+  const hit=hits[0],face=hit.faceIndex;
+  if(hit.face){
+   const source=solid.geometry.getAttribute("position"),ids=[hit.face.a,hit.face.b,hit.face.c],points=[];
+   for(const id of ids){const p=new THREE.Vector3().fromBufferAttribute(source,id);solid.localToWorld(p);points.push(p.x,p.y,p.z);}
+   const faceGeo=new THREE.BufferGeometry();faceGeo.setAttribute("position",new THREE.Float32BufferAttribute(points,3));faceGeo.setIndex([0,1,2]);faceGeo.computeVertexNormals();
+   faceHighlight=new THREE.Mesh(faceGeo,new THREE.MeshBasicMaterial({color:0x8de0bd,transparent:true,opacity:.62,side:THREE.DoubleSide,depthTest:false,polygonOffset:true,polygonOffsetFactor:-2}));
+   faceHighlight.renderOrder=11;scene.add(faceHighlight);
+  }
+  $("status").textContent="● Cara "+(face+1)+" resaltada · objeto "+(importedMesh?"STL":"paramétrico");
  }else{
-  if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
+  clearSelection();
   $("status").textContent=importedMesh?"● STL importado · sin selección":"● Motor geométrico conectado";
  }
 });
 \n$("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn;$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
-$("reset").addEventListener("click",()=>{camera.position.set(95,82,115);controls.target.set(0,12,0);controls.update();});
+$("reset").addEventListener("click",fitModel);
 
 const panel=document.querySelector(".panel");
 $("panelToggle").addEventListener("click",()=>{panel.classList.toggle("collapsed");$("panelToggle").textContent=panel.classList.contains("collapsed")?"Mostrar propiedades ☰":"Ocultar propiedades ×";});
 function setView(name){
- const target=new THREE.Vector3(0,12,0),dist=160;
- const positions={iso:[95,82,115],top:[0,dist,0.01],front:[0,12,dist],right:[dist,12,0],left:[-dist,12,0],back:[0,12,-dist],bottom:[0,-dist,0.01]};
- const v=positions[name]||positions.iso;camera.position.set(target.x+v[0],target.y+v[1],target.z+v[2]);controls.target.copy(target);controls.update();
+ const box=modelBounds(),target=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
+ const dist=Math.max(size.x,size.y,size.z,1)*2.5;
+ const directions={iso:[.78,.62,1],top:[0,1,.001],front:[0,.001,1],right:[1,.001,0],left:[-1,.001,0],back:[0,.001,-1],bottom:[0,-1,.001]};
+ const v=directions[name]||directions.iso;
+ camera.position.copy(target).add(new THREE.Vector3(v[0]*dist,v[1]*dist,v[2]*dist));controls.target.copy(target);controls.update();
 }
 document.querySelectorAll("[data-orientation]").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.orientation)));
 $("viewIso").addEventListener("click",()=>setView("iso"));
-$("viewFit").addEventListener("click",()=>{controls.target.set(0,12,0);camera.position.set(95,82,115);controls.update();});
+$("viewFit").addEventListener("click",fitModel);
 
 function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(host);resize();build();
