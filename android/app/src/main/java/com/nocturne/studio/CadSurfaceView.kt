@@ -30,7 +30,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 lastX = event.x; lastY = event.y
-                if (sketchMode) queueEvent { cadRenderer.sketchTouch(event.x,event.y,true,false) }
+                if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,true,false) } }
                 return true
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
@@ -38,7 +38,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
             }
             MotionEvent.ACTION_MOVE -> {
                 if (sketchMode && event.pointerCount == 1) {
-                    queueEvent { cadRenderer.sketchTouch(event.x,event.y,false,false) }
+                    val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,false,false) }
                 } else if (event.pointerCount >= 2) {
                     val now = span(event)
                     if (lastSpan > 0f) {
@@ -54,7 +54,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
                 return true
             }
             MotionEvent.ACTION_POINTER_UP -> { lastSpan=0f; return true }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) queueEvent { cadRenderer.sketchTouch(event.x,event.y,false,true) }; lastSpan=0f; return true }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,false,true) } }; lastSpan=0f; return true }
         }
         return true
     }
