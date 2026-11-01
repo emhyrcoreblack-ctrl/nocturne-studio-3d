@@ -150,7 +150,18 @@ class CadRenderer : GLSurfaceView.Renderer {
         return selectedFace
     }
     fun orbit(dx:Float,dy:Float) { yaw-=dx*.008f; pitch=(pitch+dy*.008f).coerceIn(-1.35f,1.35f) }
-    fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,18f) }
+    fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,40f) }
+    fun setView(name:String) {
+        when(name) {
+            "Superior" -> { yaw=0f; pitch=1.55f }
+            "Inferior" -> { yaw=0f; pitch=-1.55f }
+            "Frontal" -> { yaw=0f; pitch=0f }
+            "Posterior" -> { yaw=Math.PI.toFloat(); pitch=0f }
+            "Derecha" -> { yaw=(Math.PI/2).toFloat(); pitch=0f }
+            "Izquierda" -> { yaw=(-Math.PI/2).toFloat(); pitch=0f }
+            else -> { yaw=.72f; pitch=.48f }
+        }
+    }
     fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; objectSelected=false; selectedFace=-1 }
     fun setPrimitive(type:Int) { rememberChange(); primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null; objectSelected=false; selectedFace=-1 }
     fun setSketchType(type:String) { rememberChange(); sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
