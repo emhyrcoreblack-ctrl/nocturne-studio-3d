@@ -15,7 +15,7 @@ class CadRenderer : GLSurfaceView.Renderer {
     @Volatile private var yaw = 0.72f
     @Volatile private var pitch = 0.48f
     @Volatile private var distance = 5.2f
-    @Volatile private var primitive = 0
+    @Volatile private var primitive = -1
     @Volatile private var objectSelected = false
     @Volatile private var selectedFace = -1
     private var program = 0
@@ -92,7 +92,7 @@ class CadRenderer : GLSurfaceView.Renderer {
             val mesh = buffer(vertices)
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
         } else if (primitive==0) { if (objectSelected) { val selected=buffer(cubeVertices(selectedFace)); draw(selected,selected.limit()/7,GLES20.GL_TRIANGLES) } else draw(cube,cubeCount,GLES20.GL_TRIANGLES) }
-        else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
+        else if (primitive==1) { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
         if (sketchStart != null && sketchEnd != null && !extruded) {
             val outline = buffer(when(sketchType) { "Círculo" -> circleLines(sketchStart!!, sketchEnd!!); "Línea" -> lineVertices(sketchStart!!, sketchEnd!!); else -> rectangleLines(sketchStart!!, sketchEnd!!) })
             GLES20.glLineWidth(3f); draw(outline, outline.limit()/7, GLES20.GL_LINES)
@@ -151,7 +151,7 @@ class CadRenderer : GLSurfaceView.Renderer {
     }
     fun orbit(dx:Float,dy:Float) { yaw-=dx*.008f; pitch=(pitch+dy*.008f).coerceIn(-1.35f,1.35f) }
     fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,18f) }
-    fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; primitive=0; objectSelected=false; selectedFace=-1 }
+    fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; objectSelected=false; selectedFace=-1 }
     fun setPrimitive(type:Int) { rememberChange(); primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null; objectSelected=false; selectedFace=-1 }
     fun setSketchType(type:String) { rememberChange(); sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
     fun sketchTouch(x:Float,y:Float,down:Boolean,finish:Boolean) {
