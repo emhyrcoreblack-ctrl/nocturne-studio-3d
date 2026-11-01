@@ -367,7 +367,7 @@ let pressPoint=null,selectionMode="object";
 document.querySelectorAll("[data-select-mode]").forEach(button=>button.addEventListener("click",()=>{selectionMode=button.dataset.selectMode;document.querySelectorAll("[data-select-mode]").forEach(item=>item.classList.toggle("active",item===button));if(wire)wire.visible=wireOn||selectionMode==="edge";clearSelection();$("status").textContent="● Selección: "+({object:"objeto",face:"cara",edge:"arista"}[selectionMode]);}));
 renderer.domElement.addEventListener("pointerdown",event=>{pressPoint={x:event.clientX,y:event.clientY};});
 renderer.domElement.addEventListener("pointerup",event=>{
- if(drawingActive){pressPoint=null;handleSketchPointer(event);return;}
+ if(drawingActive){const moved=pressPoint?Math.hypot(event.clientX-pressPoint.x,event.clientY-pressPoint.y):0;pressPoint=null;if(moved<=6)handleSketchPointer(event);return;}
  if(!pressPoint)return;
  const moved=Math.hypot(event.clientX-pressPoint.x,event.clientY-pressPoint.y);pressPoint=null;
  if(moved>5||!solid)return;
