@@ -111,6 +111,10 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <div class="field" id="radiusField" hidden><label for="radius">Radio <output id="radiusOut">20 mm</output></label><input id="radius" type="range" min="5" max="40" value="20"></div>
 <div class="field"><label for="height">Altura de extrusión <output id="heightOut">32 mm</output></label><input id="height" type="range" min="5" max="80" value="32"></div>
 <div class="actions"><button id="reset">Restablecer vista</button><button id="wire">Ver aristas</button></div>
+<div class="field"><label for="moveX">Mover X <output id="moveXOut">0 mm</output></label><input id="moveX" type="range" min="-100" max="100" value="0"></div>
+<div class="field"><label for="moveY">Mover Y <output id="moveYOut">0 mm</output></label><input id="moveY" type="range" min="-100" max="100" value="0"></div>
+<div class="field"><label for="moveZ">Mover Z <output id="moveZOut">0 mm</output></label><input id="moveZ" type="range" min="-100" max="100" value="0"></div>
+<div class="actions"><button id="centerModel">Centrar modelo</button><button id="exportStl">Exportar STL</button></div>
 <div class="stats">
 <div class="stat"><small>Vértices</small><strong id="vertices">8</strong></div>
 <div class="stat"><small>Triángulos</small><strong id="triangles">12</strong></div>
@@ -145,6 +149,31 @@ let solid=null,wire=null,wireOn=false;
 const cadDocument=new CadDocument("NOCTURNE");
 let importedMesh=null,selectionHelper=null,faceHighlight=null;
 const $=id=>document.getElementById(id);
+function applyTranslation(){
+ if(!solid)return;
+ const x=+$("moveX").value,y=+$("moveY").value,z=+$("moveZ").value;
+ solid.position.set(x,y,z);
+ $("moveXOut").textContent=x+" mm";$("moveYOut").textContent=y+" mm";$("moveZOut").textContent=z+" mm";
+ if(selectionHelper)selectionHelper.update();
+}
+function exportCurrentSTL(){
+ if(!solid)throw new Error("No hay un modelo para exportar");
+ const geometry=solid.geometry,position=geometry.getAttribute("position"),index=geometry.index;
+ const count=index?index.count/3:position.count/3,buffer=new ArrayBuffer(84+count*50),view=new DataView(buffer);
+ const header=new TextEncoder().encode("NOCTURNE STUDIO 3D · STL BINARIO");
+ new Uint8Array(buffer,0,header.length).set(header);view.setUint32(80,count,true);
+ solid.updateMatrixWorld(true);let offset=84;
+ const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),normal=new THREE.Vector3();
+ for(let face=0;face<count;face++){
+  const ia=index?index.getX(face*3):face*3,ib=index?index.getX(face*3+1):face*3+1,ic=index?index.getX(face*3+2):face*3+2;
+  a.fromBufferAttribute(position,ia).applyMatrix4(solid.matrixWorld);b.fromBufferAttribute(position,ib).applyMatrix4(solid.matrixWorld);c.fromBufferAttribute(position,ic).applyMatrix4(solid.matrixWorld);
+  normal.subVectors(c,b).cross(new THREE.Vector3().subVectors(a,b)).normalize();
+  for(const value of [...normal.toArray(),...a.toArray(),...b.toArray(),...c.toArray()]){view.setFloat32(offset,value,true);offset+=4;}
+  view.setUint16(offset,0,true);offset+=2;
+ }
+ const url=URL.createObjectURL(new Blob([buffer],{type:"model/stl"})),link=document.createElement("a");
+ link.href=url;link.download="nocturne-modelo.stl";link.click();URL.revokeObjectURL(url);
+}
 function clearSelection(){
  if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
  if(faceHighlight){scene.remove(faceHighlight);faceHighlight.geometry.dispose();faceHighlight.material.dispose();faceHighlight=null;}
@@ -188,10 +217,21 @@ function build(){
   const mesh=circle?extrudeCircle({x:0,y:0},r,h):extrudePolygon([{x:-w/2,y:-d/2},{x:w/2,y:-d/2},{x:w/2,y:d/2},{x:-w/2,y:d/2}],h);
   if(importedMesh) importedMesh=null;
   const report=showMesh(mesh);
+  ["moveX","moveY","moveZ"].forEach(id=>$(id).value=0);applyTranslation();
   $("status").textContent=report.closed?"● Malla generada · topología cerrada":"● Atención: malla con incidencias";
  }catch(e){$("status").textContent="Error geométrico: "+e.message;}
 }
 ["shape","width","depth","radius","height"].forEach(id=>$(id).addEventListener("input",build));
+["moveX","moveY","moveZ"].forEach(id=>$(id).addEventListener("input",applyTranslation));
+$("centerModel").addEventListener("click",()=>{
+ if(!solid)return;const box=modelBounds(),center=box.getCenter(new THREE.Vector3());
+ solid.position.sub(center);["moveX","moveY","moveZ"].forEach(id=>$(id).value=0);applyTranslation();
+ $("status").textContent="● Modelo centrado en el origen";
+});
+$("exportStl").addEventListener("click",()=>{
+ try{exportCurrentSTL();$("status").textContent="● STL binario exportado";}
+ catch(error){$("status").textContent="Error al exportar: "+error.message;}
+});
 $("importStl").addEventListener("click",()=>$("stlFile").click());
 $("stlFile").addEventListener("change",async event=>{
  const file=event.target.files?.[0];if(!file)return;
@@ -199,6 +239,7 @@ $("stlFile").addEventListener("change",async event=>{
  try{
   const mesh=importSTL(await file.arrayBuffer());cadDocument.addImportedMesh(mesh,file.name);importedMesh=mesh;
   const report=showMesh(mesh,{fit:true});
+  ["moveX","moveY","moveZ"].forEach(id=>$(id).value=0);applyTranslation();
   $("status").textContent="● STL "+mesh.metadata.sourceFormat.toUpperCase()+" importado · "+report.triangleCount+" triángulos · "+(report.closed?"malla cerrada":"malla abierta o con incidencias");
   ["shape","width","depth","radius","height"].forEach(id=>$(id).disabled=true);
  }catch(error){$("status").textContent="Error al importar STL: "+error.message;}
