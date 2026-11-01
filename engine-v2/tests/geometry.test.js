@@ -64,7 +64,7 @@ test("triangula y extruye perfiles cóncavos en ambos sentidos",()=>{
  for(const points of [ccw,[...ccw].reverse()]){
   const mesh=extrudePolygon(points,5);
   const report=inspectMeshTopology(mesh);
-  assert.equal(report.triangleCount,2*points.length-4);
+  assert.equal(report.triangleCount,4*points.length-4);
   assert.equal(report.closed,true);
   assert.equal(report.boundaryEdges,0);
   assert.equal(report.nonManifoldEdges,0);
