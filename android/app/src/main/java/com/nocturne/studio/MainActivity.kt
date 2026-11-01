@@ -39,6 +39,7 @@ private fun NocturneApp() {
     var showInspector by remember { mutableStateOf(false) }
     var surface by remember { mutableStateOf<CadSurfaceView?>(null) }
     var extrusionHeight by remember { mutableFloatStateOf(1.0f) }
+    var objectSelected by remember { mutableStateOf(false) }
 
     MaterialTheme(colorScheme = darkColorScheme(
         background = Ink, surface = Panel, primary = Accent,
@@ -46,7 +47,7 @@ private fun NocturneApp() {
     )) {
         Box(Modifier.fillMaxSize().background(Ink)) {
             AndroidView(
-                factory = { context -> CadSurfaceView(context).also { surface = it } },
+                factory = { context -> CadSurfaceView(context).also { view -> surface = view; view.onSelectionChanged = { objectSelected = it } } },
                 modifier = Modifier.fillMaxSize()
             )
             Column(Modifier.fillMaxSize()) {
@@ -72,6 +73,7 @@ private fun NocturneApp() {
                                 activeTool = tool
                                 panel = tool
                                 if (tool != "Croquis") surface?.setSketchMode(false)
+                                surface?.setSelectionMode(tool=="Seleccionar")
                             }
                         }
                     }
@@ -83,7 +85,8 @@ private fun NocturneApp() {
                             Text("PROPIEDADES", color = Accent, fontSize = 10.sp)
                             Spacer(Modifier.height(8.dp))
                             Text("Objeto", color = Muted, fontSize = 11.sp)
-                            Text("Sólido de trabajo", fontSize = 13.sp)
+                            Text(if(objectSelected) "Cuerpo seleccionado" else "Sin selección", fontSize = 13.sp)
+                            Text(if(objectSelected) "Toca el cuerpo para deseleccionar" else "Toca un cuerpo en el visor para seleccionarlo", color=Muted, fontSize=10.sp)
                             Spacer(Modifier.height(12.dp))
                             Text("Vista", color = Muted, fontSize = 11.sp)
                             Text("Perspectiva", fontSize = 13.sp)
