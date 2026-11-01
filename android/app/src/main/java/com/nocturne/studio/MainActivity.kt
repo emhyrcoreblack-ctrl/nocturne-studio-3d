@@ -38,6 +38,7 @@ private fun NocturneApp() {
     var panel by remember { mutableStateOf("Ninguno") }
     var showInspector by remember { mutableStateOf(false) }
     var surface by remember { mutableStateOf<CadSurfaceView?>(null) }
+    var extrusionHeight by remember { mutableFloatStateOf(1.0f) }
 
     MaterialTheme(colorScheme = darkColorScheme(
         background = Ink, surface = Panel, primary = Accent,
@@ -88,6 +89,12 @@ private fun NocturneApp() {
                             Text("Perspectiva", fontSize = 13.sp)
                         }
                     }
+                    if (activeTool=="Sólido" && panel=="Extruir") {
+                        Spacer(Modifier.height(8.dp))
+                        Text("Altura: " + "%.1f".format(extrusionHeight), color=Muted, fontSize=11.sp)
+                        Slider(value=extrusionHeight, onValueChange={ extrusionHeight=it; surface?.setExtrusionHeight(it) }, valueRange=0.1f..8f)
+                        SmallAction("Aplicar extrusión") { surface?.extrudeSketch() }
+                    }
                 }
                 Spacer(Modifier.height(10.dp))
                 Column(Modifier.fillMaxWidth().background(Color(0xF20E1622)).padding(horizontal=12.dp, vertical=10.dp)) {
@@ -103,7 +110,10 @@ private fun NocturneApp() {
                                 panel=it
                                 if (it=="Extruir") surface?.extrudeSketch()
                             } }
-                            "Transformar" -> listOf("Mover", "Rotar", "Escalar", "Duplicar").forEach { ToolChip(it, panel==it) { panel=it } }
+                            "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Duplicar", "Restablecer").forEach { ToolChip(it, panel==it) {
+                                panel=it
+                                surface?.transform(it)
+                            } }
                             else -> listOf("Caja", "Cilindro", "Ajustar vista").forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 if (it=="Ajustar vista") surface?.resetView()
