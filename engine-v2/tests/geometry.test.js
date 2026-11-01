@@ -22,7 +22,7 @@ test("planos XZ y YZ generan bases ortogonales",()=>{
 test("extruye un círculo como cilindro poligonal cerrado",()=>{
  const m=extrudeCircle({x:0,y:0},5,12,Plane.XY(),32);
  assert.equal(m.vertices.length,32*2*3);
- assert.equal(m.triangles.length,32*12);
+ assert.equal(m.triangles.length,12*32-12); // 2*(n-2) tapas + 2*n caras laterales, tres índices por triángulo
  assert.equal(m.metadata.radius,5);
 });
 test("despacha perfiles circulares y poligonales",()=>{
@@ -50,7 +50,7 @@ test("las extrusiones poligonales son cerradas en ambos sentidos de dibujo",()=>
 test("la extrusión circular produce una malla cerrada",()=>{
  const report=inspectMeshTopology(extrudeCircle({x:2,y:-1},4,7,Plane.XY(),24));
  assert.equal(report.closed,true);
- assert.equal(report.triangleCount,48);
+ assert.equal(report.triangleCount,4*24-4); // 2*(n-2) tapas + 2*n caras laterales
 });
 test("el inspector detecta una malla con borde abierto",()=>{
  const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0],triangles:[0,1,2]};
