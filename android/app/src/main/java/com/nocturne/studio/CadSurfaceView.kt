@@ -11,6 +11,10 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     private var lastY = 0f
     private var lastSpan = 0f
     @Volatile private var sketchMode = false
+    @Volatile private var selectionMode = false
+    var onSelectionChanged: ((Boolean) -> Unit)? = null
+    private var downX=0f
+    private var downY=0f
 
     init {
         setEGLContextClientVersion(2)
@@ -26,6 +30,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     fun redo() { queueEvent { cadRenderer.redo() } }
     fun setPrimitive(type: Int) { sketchMode=false; queueEvent { cadRenderer.setPrimitive(type) } }
     fun setSketchMode(enabled: Boolean) { sketchMode=enabled }
+    fun setSelectionMode(enabled:Boolean) { selectionMode=enabled }
     fun setSketchType(type:String) { sketchMode=true; queueEvent { cadRenderer.setSketchType(type) } }
     fun extrudeSketch() { sketchMode=false; queueEvent { cadRenderer.extrudeSketch() } }
     fun setExtrusionHeight(value:Float) { queueEvent { cadRenderer.setExtrusionHeight(value) } }
@@ -34,7 +39,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                lastX = event.x; lastY = event.y
+                lastX = event.x; lastY = event.y; downX=event.x; downY=event.y
                 if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,true,false) } }
                 return true
             }
@@ -59,7 +64,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
                 return true
             }
             MotionEvent.ACTION_POINTER_UP -> { lastSpan=0f; return true }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,false,true) } }; lastSpan=0f; return true }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) { val tx=event.x; val ty=event.y; queueEvent { cadRenderer.sketchTouch(tx,ty,false,true) } } else if (selectionMode && kotlin.math.hypot((event.x-downX).toDouble(),(event.y-downY).toDouble())<18.0) { val tx=event.x; val ty=event.y; queueEvent { val selected=cadRenderer.selectAt(tx,ty); post { onSelectionChanged?.invoke(selected) } } }; lastSpan=0f; return true }
         }
         return true
     }
