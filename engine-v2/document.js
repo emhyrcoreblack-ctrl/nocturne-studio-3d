@@ -3,6 +3,7 @@
  * Geometry kernel adapters can be attached without coupling to the UI.
  */
 import { extrudeProfile, Plane } from "./geometry.js";
+import { validateTriangleMesh } from "./mesh.js";
 
 const clone = value => structuredClone(value);
 
@@ -36,6 +37,10 @@ export class CadDocument {
     this._undo.push(this.toJSON());
     if(this._undo.length>100) this._undo.shift();
     this._redo.length=0;
+  }
+  addImportedMesh(mesh, label = "STL importado") {
+    validateTriangleMesh(mesh);
+    return this.addFeature(new Feature("import-mesh", {mesh:clone(mesh)}, label));
   }
   addFeature(feature) {
     if(!(feature instanceof Feature)) throw new TypeError("Se esperaba una Feature");
