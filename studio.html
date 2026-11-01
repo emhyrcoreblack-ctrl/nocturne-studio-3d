@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1018">
+<title>NOCTURNE · Vista previa del motor 3D</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1018;--panel:#131c29;--line:#26364b;--text:#edf4ff;--muted:#91a2ba;--accent:#91baff;--mint:#8de0bd}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#263d5b 0,transparent 52%),var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+header{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,48px);background:#0b1018c9}
+.brand{font-weight:800;letter-spacing:.16em}.brand span{color:var(--accent)}.tag{font-size:11px;color:var(--mint);border:1px solid #315d51;border-radius:20px;padding:5px 10px;letter-spacing:.08em}
+main{width:min(1180px,calc(100% - 28px));margin:30px auto 60px}.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+h1{font-size:clamp(28px,5vw,46px);line-height:1.08;letter-spacing:-.04em;margin:8px 0}.intro{color:var(--muted);max-width:720px;margin:0 0 22px}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px}.viewport,.panel{border:1px solid var(--line);background:linear-gradient(145deg,#162233,#0f1723);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px #0005}
+.viewport{min-height:560px;position:relative}.viewport canvas{display:block;width:100%;height:560px;touch-action:none}
+.view-label{position:absolute;top:16px;left:18px;color:#c8d8ed;font-size:11px;letter-spacing:.14em;pointer-events:none}.hint{position:absolute;bottom:14px;left:16px;color:#91a2ba;font-size:11px;pointer-events:none}
+.panel{padding:20px;display:flex;flex-direction:column;gap:18px}.panel h2{font-size:15px;margin:0}.field{display:grid;gap:8px}.field label{display:flex;justify-content:space-between;color:#c4d1e3;font-size:12px}.field output{color:var(--accent);font-variant-numeric:tabular-nums}
+select,button{font:inherit;color:var(--text);background:#1b293b;border:1px solid #354960;border-radius:10px;padding:10px 12px}select{width:100%}input[type=range]{width:100%;accent-color:#91baff}
+button{cursor:pointer}button:hover{border-color:var(--accent)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions button{font-size:12px}
+.stats{border-top:1px solid var(--line);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase}.stat strong{font-size:19px;font-variant-numeric:tabular-nums}
+.status{color:var(--mint);font-size:12px}.note{color:var(--muted);font-size:11px;margin-top:auto;border-top:1px solid var(--line);padding-top:13px}
+footer{color:#72839b;font-size:11px;margin:14px 4px}
+@media(max-width:800px){.workspace{grid-template-columns:1fr}.viewport{min-height:420px}.viewport canvas{height:420px}.panel{display:grid;grid-template-columns:1fr 1fr}.panel h2,.stats,.note{grid-column:1/-1}.actions{align-self:end}}
+@media(max-width:480px){.panel{grid-template-columns:1fr}.field,.actions{grid-column:1/-1}.viewport canvas{height:360px}.viewport{min-height:360px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
+<style>
+/* NOCTURNE CAD workspace layer */
+body{background:#090e16}
+header{height:54px;padding:0 18px;background:#101722;border-bottom:1px solid #29384b}
+main{width:100%;max-width:none;margin:0;padding:0 14px 18px}
+main>.eyebrow,main>h1,main>.intro,footer{display:none}
+.workspace{position:relative;display:block;height:calc(100dvh - 68px);min-height:540px}
+.viewport{position:absolute;inset:0;border-radius:12px;min-height:0;border:1px solid #26374c}
+.viewport canvas{height:100%;width:100%}
+.view-label{top:14px;left:68px}.hint{left:68px;bottom:14px}
+.panel{position:absolute;right:12px;top:12px;bottom:12px;width:270px;overflow:auto;background:#111a27ed;backdrop-filter:blur(16px);border:1px solid #34465d;border-radius:12px;z-index:5;transition:transform .2s}
+.panel.collapsed{transform:translateX(calc(100% + 18px))}
+.cad-top{position:absolute;z-index:7;top:12px;left:12px;right:294px;height:44px;display:flex;align-items:center;gap:7px;pointer-events:none}
+.cad-top>*{pointer-events:auto}
+.cad-pill{background:#111b29eF;border:1px solid #34465d;color:#dce8f8;border-radius:9px;padding:8px 11px;font-size:12px}
+.cad-brand{font-size:12px;letter-spacing:.13em;font-weight:800;margin-right:auto;color:#f2f6ff}
+.cad-brand span{color:#91baff}
+.cad-rail{position:absolute;z-index:7;left:12px;top:68px;display:flex;flex-direction:column;gap:7px}
+.cad-tool{width:42px;height:42px;border-radius:10px;padding:0;background:#111b29ed;border:1px solid #34465d;display:grid;place-items:center;font-size:17px}
+.cad-tool.active{background:#29466b;border-color:#82b4ff;color:#fff}
+.view-cube{position:absolute;z-index:7;right:300px;top:70px;display:grid;grid-template-columns:repeat(3,31px);gap:2px}
+.view-cube button{font-size:9px;padding:0;height:27px;border-radius:5px;background:#1a293bdb;border-color:#405674}
+.view-cube button:nth-child(2){grid-column:2}
+.view-cube button:nth-child(4){grid-column:1}
+.view-cube button:nth-child(5){grid-column:2}
+.view-cube button:nth-child(6){grid-column:3}
+.cad-bottom{position:absolute;z-index:7;left:50%;transform:translateX(-50%);bottom:12px;display:flex;gap:6px;padding:6px;background:#111b29ed;border:1px solid #34465d;border-radius:11px}
+.cad-bottom button{font-size:11px;padding:7px 10px}
+#panelToggle{position:absolute;z-index:8;right:14px;top:66px;padding:8px 10px;font-size:11px}
+.panel h2{margin-top:4px}
+@media(max-width:760px){
+ .workspace{height:calc(100dvh - 62px);min-height:520px}
+ .cad-top{right:12px;top:9px}.cad-top .cad-pill.secondary{display:none}
+ .cad-brand{font-size:10px}
+ .panel{top:auto;left:10px;right:10px;bottom:10px;width:auto;max-height:48%;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .panel.collapsed{transform:translateY(calc(100% + 20px))}
+ .panel h2,.stats,.note{grid-column:1/-1}
+ .field{min-width:0}.field label{font-size:11px}
+ .panel .actions{grid-column:1/-1}
+ .cad-rail{left:9px;top:62px;gap:5px}
+ .cad-tool{width:36px;height:36px;font-size:15px}
+ .view-cube{right:12px;top:62px;grid-template-columns:repeat(3,26px)}
+ .view-cube button{height:23px;font-size:8px}
+ .cad-bottom{bottom:calc(50% + 18px);left:50%;gap:3px}
+ .cad-bottom button{font-size:10px;padding:6px 7px}
+ #panelToggle{right:10px;top:auto;bottom:calc(48% + 20px)}
+ .view-label{left:54px;top:15px;font-size:9px}
+ .hint{left:12px;bottom:12px;font-size:10px}
+}
+</style>
+</head>
+<body>
+<header><div class="brand">NOCTURNE <span>STUDIO 3D</span></div><div class="tag">ENGINE PREVIEW · v0.2</div></header>
+<main>
+<div class="eyebrow">Núcleo geométrico · demostración interactiva</div>
+<h1>La geometría empieza a tomar forma.</h1>
+<p class="intro">Esta vista utiliza las funciones reales de extrusión del motor NOCTURNE. Arrastra para orbitar, pellizca o usa la rueda para acercar y cambia los parámetros para regenerar el sólido.</p>
+<div class="workspace">
+<section class="viewport" aria-label="Visor tridimensional interactivo">
+<div class="cad-top"><div class="cad-brand">NOCTURNE <span>STUDIO 3D</span></div><button class="cad-pill">＋ Nuevo</button><button class="cad-pill secondary">↶ Deshacer</button><button class="cad-pill secondary">↷ Rehacer</button></div>
+<div class="cad-rail"><button class="cad-tool active" title="Seleccionar">↖</button><button class="cad-tool" title="Boceto">✎</button><button class="cad-tool" title="Línea">／</button><button class="cad-tool" title="Rectángulo">▱</button><button class="cad-tool" title="Círculo">◯</button><button class="cad-tool" title="Extruir">⬆</button></div>
+<div class="view-cube"><button data-view="top">TOP</button><button data-view="front">FRONT</button><button data-view="left">LEFT</button><button data-view="right">RIGHT</button><button data-view="iso">ISO</button><button data-view="back">BACK</button></div>
+<div class="view-label">ESPACIO DE DISEÑO · MM</div><div class="hint">Arrastra para girar · rueda o pellizco para zoom</div>
+</section>
+<button id="panelToggle" class="cad-pill">Propiedades ☰</button><aside class="panel">
+<h2>Geometría de prueba</h2>
+<div class="field"><label for="shape">Perfil de extrusión</label><select id="shape"><option value="box">Prisma rectangular</option><option value="cylinder">Cilindro</option></select></div>
+<div class="field" id="widthField"><label for="width">Ancho <output id="widthOut">40 mm</output></label><input id="width" type="range" min="10" max="80" value="40"></div>
+<div class="field" id="depthField"><label for="depth">Fondo <output id="depthOut">28 mm</output></label><input id="depth" type="range" min="10" max="80" value="28"></div>
+<div class="field" id="radiusField" hidden><label for="radius">Radio <output id="radiusOut">20 mm</output></label><input id="radius" type="range" min="5" max="40" value="20"></div>
+<div class="field"><label for="height">Altura de extrusión <output id="heightOut">32 mm</output></label><input id="height" type="range" min="5" max="80" value="32"></div>
+<div class="actions"><button id="reset">Restablecer vista</button><button id="wire">Ver aristas</button></div>
+<div class="stats">
+<div class="stat"><small>Vértices</small><strong id="vertices">8</strong></div>
+<div class="stat"><small>Triángulos</small><strong id="triangles">12</strong></div>
+<div class="stat"><small>Aristas abiertas</small><strong id="edges">0</strong></div>
+<div class="stat"><small>Estado topológico</small><strong id="closed" style="font-size:14px;color:var(--mint)">Cerrado</strong></div>
+</div>
+<div class="cad-bottom"><button id="viewIso">Isométrica</button><button id="viewTop">Superior</button><button id="viewFront">Frontal</button><button id="viewRight">Lateral</button></div><div class="status" id="status">● Motor geométrico conectado</div>
+<p class="note">Vista técnica preliminar. El visor muestra mallas triangulares generadas por engine-v2; todavía no es la interfaz CAD definitiva ni un kernel B-rep.</p>
+</aside>
+</div>
+<footer>NOCTURNE STUDIO 3D · Proyecto en desarrollo · Unidades: milímetros</footer>
+</main>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { extrudePolygon, extrudeCircle, inspectMeshTopology } from "./engine-v2/geometry.js";
+
+const host=document.querySelector(".viewport");
+const scene=new THREE.Scene();scene.background=new THREE.Color("#101a29");
+const camera=new THREE.PerspectiveCamera(38,1,.1,1000);camera.position.set(95,82,115);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;host.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,12,0);controls.minDistance=35;controls.maxDistance=280;
+scene.add(new THREE.HemisphereLight(0xdceaff,0x253044,2.1));
+const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(65,100,70);key.castShadow=true;scene.add(key);
+const fill=new THREE.DirectionalLight(0x79aaff,1.1);fill.position.set(-70,30,-55);scene.add(fill);
+const grid=new THREE.GridHelper(180,18,"#344c68","#26394f");grid.position.y=-.15;scene.add(grid);
+const axes=new THREE.AxesHelper(24);axes.position.set(-48,.1,-48);scene.add(axes);
+const material=new THREE.MeshStandardMaterial({color:0x8eafd7,metalness:.48,roughness:.28});
+let solid=null,wire=null,wireOn=false;
+const $=id=>document.getElementById(id);
+function build(){
+ try{
+  const h=+$("height").value,w=+$("width").value,d=+$("depth").value,r=+$("radius").value;
+  const circle=$("shape").value==="cylinder";
+  $("widthField").hidden=circle;$("depthField").hidden=circle;$("radiusField").hidden=!circle;
+  $("widthOut").textContent=w+" mm";$("depthOut").textContent=d+" mm";$("radiusOut").textContent=r+" mm";$("heightOut").textContent=h+" mm";
+  const mesh=circle?extrudeCircle({x:0,y:0},r,h):extrudePolygon([{x:-w/2,y:-d/2},{x:w/2,y:-d/2},{x:w/2,y:d/2},{x:-w/2,y:d/2}],h);
+  const report=inspectMeshTopology(mesh);
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(mesh.vertices,3));geo.setIndex(mesh.triangles);geo.computeVertexNormals();geo.computeBoundingSphere();
+  const next=new THREE.Mesh(geo,material);next.castShadow=true;next.receiveShadow=true;
+  const nextWire=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x17283d,transparent:true,opacity:.8}));nextWire.visible=wireOn;next.add(nextWire);
+  if(solid){scene.remove(solid);solid.geometry.dispose();solid.children[0]?.geometry?.dispose();}
+  solid=next;wire=nextWire;scene.add(solid);
+  $("vertices").textContent=report.vertexCount;$("triangles").textContent=report.triangleCount;$("edges").textContent=report.boundaryEdges;$("closed").textContent=report.closed?"Cerrado":"Revisar";
+  $("closed").style.color=report.closed?"#8de0bd":"#ff9a8b";$("status").textContent=report.closed?"● Malla generada · topología cerrada":"● Atención: malla con incidencias";
+ }catch(e){$("status").textContent="Error geométrico: "+e.message;}
+}
+["shape","width","depth","radius","height"].forEach(id=>$(id).addEventListener("input",build));
+$("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn;$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
+$("reset").addEventListener("click",()=>{camera.position.set(95,82,115);controls.target.set(0,12,0);controls.update();});
+
+const panel=document.querySelector(".panel");
+$("panelToggle").addEventListener("click",()=>{panel.classList.toggle("collapsed");$("panelToggle").textContent=panel.classList.contains("collapsed")?"Mostrar propiedades ☰":"Ocultar propiedades ×";});
+function setView(name){
+ const target=new THREE.Vector3(0,12,0),dist=160;
+ const positions={iso:[95,82,115],top:[0,dist,0.01],front:[0,12,dist],right:[dist,12,0],left:[-dist,12,0],back:[0,12,-dist]};
+ const v=positions[name]||positions.iso;camera.position.set(target.x+v[0],target.y+v[1],target.z+v[2]);controls.target.copy(target);controls.update();
+}
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)));
+$("viewIso").addEventListener("click",()=>setView("iso"));$("viewTop").addEventListener("click",()=>setView("top"));$("viewFront").addEventListener("click",()=>setView("front"));$("viewRight").addEventListener("click",()=>setView("right"));
+
+function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(host);resize();build();
+renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera);});
+</script>
+</body></html>
