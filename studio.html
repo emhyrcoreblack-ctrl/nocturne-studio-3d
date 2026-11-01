@@ -44,12 +44,6 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 .cad-rail{position:absolute;z-index:7;left:12px;top:68px;display:flex;flex-direction:column;gap:7px}
 .cad-tool{width:42px;height:42px;border-radius:10px;padding:0;background:#111b29ed;border:1px solid #34465d;display:grid;place-items:center;font-size:17px}
 .cad-tool.active{background:#29466b;border-color:#82b4ff;color:#fff}
-.view-cube{position:absolute;z-index:7;right:300px;top:70px;display:grid;grid-template-columns:repeat(3,31px);gap:2px}
-.view-cube button{font-size:9px;padding:0;height:27px;border-radius:5px;background:#1a293bdb;border-color:#405674}
-.view-cube button:nth-child(2){grid-column:2}
-.view-cube button:nth-child(4){grid-column:1}
-.view-cube button:nth-child(5){grid-column:2}
-.view-cube button:nth-child(6){grid-column:3}
 .cad-bottom{position:absolute;z-index:7;left:50%;transform:translateX(-50%);bottom:12px;display:flex;gap:6px;padding:6px;background:#111b29ed;border:1px solid #34465d;border-radius:11px}
 .cad-bottom button{font-size:11px;padding:7px 10px}
 #panelToggle{position:absolute;z-index:8;right:14px;top:66px;padding:8px 10px;font-size:11px}
@@ -65,8 +59,6 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
  .panel .actions{grid-column:1/-1}
  .cad-rail{left:9px;top:62px;gap:5px}
  .cad-tool{width:36px;height:36px;font-size:15px}
- .view-cube{right:12px;top:62px;grid-template-columns:repeat(3,26px)}
- .view-cube button{height:23px;font-size:8px}
  .cad-bottom{bottom:calc(50% + 18px);left:50%;gap:3px}
  .cad-bottom button{font-size:10px;padding:6px 7px}
  #panelToggle{right:10px;top:auto;bottom:calc(48% + 20px)}
@@ -85,7 +77,6 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <section class="viewport" aria-label="Visor tridimensional interactivo">
 <div class="cad-top"><div class="cad-brand">NOCTURNE <span>STUDIO 3D</span></div><button class="cad-pill">＋ Nuevo</button><button class="cad-pill secondary">↶ Deshacer</button><button class="cad-pill secondary">↷ Rehacer</button></div>
 <div class="cad-rail"><button class="cad-tool active" title="Seleccionar">↖</button><button class="cad-tool" title="Boceto">✎</button><button class="cad-tool" title="Línea">／</button><button class="cad-tool" title="Rectángulo">▱</button><button class="cad-tool" title="Círculo">◯</button><button class="cad-tool" title="Extruir">⬆</button></div>
-<div class="view-cube"><button data-view="top">TOP</button><button data-view="front">FRONT</button><button data-view="left">LEFT</button><button data-view="right">RIGHT</button><button data-view="iso">ISO</button><button data-view="back">BACK</button></div>
 <div class="view-label">ESPACIO DE DISEÑO · MM</div><div class="hint">Arrastra para girar · rueda o pellizco para zoom</div>
 </section>
 <button id="panelToggle" class="cad-pill">Propiedades ☰</button><aside class="panel">
@@ -154,7 +145,6 @@ function setView(name){
  const positions={iso:[95,82,115],top:[0,dist,0.01],front:[0,12,dist],right:[dist,12,0],left:[-dist,12,0],back:[0,12,-dist]};
  const v=positions[name]||positions.iso;camera.position.set(target.x+v[0],target.y+v[1],target.z+v[2]);controls.target.copy(target);controls.update();
 }
-document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)));
 $("viewIso").addEventListener("click",()=>setView("iso"));$("viewTop").addEventListener("click",()=>setView("top"));$("viewFront").addEventListener("click",()=>setView("front"));$("viewRight").addEventListener("click",()=>setView("right"));
 
 function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
