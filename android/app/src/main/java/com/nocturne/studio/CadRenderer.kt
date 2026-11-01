@@ -35,6 +35,11 @@ class CadRenderer : GLSurfaceView.Renderer {
     private var sketchEnd: FloatArray? = null
     private var sketchDragging = false
     private var extruded = false
+    @Volatile private var extrusionHeight = 1.0f
+    @Volatile private var objectScale = 1.0f
+    @Volatile private var objectYaw = 0.0f
+    @Volatile private var objectX = 0.0f
+    @Volatile private var objectZ = 0.0f
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.035f,0.052f,0.078f,1f)
@@ -63,13 +68,16 @@ class CadRenderer : GLSurfaceView.Renderer {
         val cz=(distance*cos(pitch)*cos(yaw))
         Matrix.setLookAtM(view,0,cx,cy,cz,0f,0f,0f,0f,1f,0f)
         Matrix.setIdentityM(model,0)
+        Matrix.translateM(model,0,objectX,0f,objectZ)
+        Matrix.rotateM(model,0,objectYaw,0f,1f,0f)
+        Matrix.scaleM(model,0,objectScale,objectScale,objectScale)
         Matrix.multiplyMM(vp,0,projection,0,view,0)
         Matrix.multiplyMM(mvp,0,vp,0,model,0)
         GLES20.glUseProgram(program)
         GLES20.glUniformMatrix4fv(mvpHandle,1,false,mvp,0)
         draw(grid,gridCount,GLES20.GL_LINES)
         if (extruded && sketchStart != null && sketchEnd != null) {
-            val mesh = buffer(extrusionVertices(sketchStart!!, sketchEnd!!, 1.0f))
+            val mesh = buffer(extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight))
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
         } else if (primitive==0) draw(cube,cubeCount,GLES20.GL_TRIANGLES)
         else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
@@ -99,6 +107,18 @@ class CadRenderer : GLSurfaceView.Renderer {
         else if (sketchDragging) { sketchEnd=p; if (finish) sketchDragging=false }
     }
     fun extrudeSketch() { if (sketchStart != null && sketchEnd != null) { extruded=true; primitive=2 } }
+    fun setExtrusionHeight(value:Float) { extrusionHeight=value.coerceIn(0.1f,8f) }
+    fun transform(action:String) {
+        when(action) {
+            "Mover X" -> objectX += 0.25f
+            "Mover Z" -> objectZ += 0.25f
+            "Rotar" -> objectYaw += 15f
+            "Escalar +" -> objectScale=(objectScale*1.15f).coerceAtMost(3f)
+            "Escalar -" -> objectScale=(objectScale/1.15f).coerceAtLeast(.25f)
+            "Duplicar" -> { objectX += .5f; objectZ += .5f }
+            "Restablecer" -> { objectX=0f; objectZ=0f; objectYaw=0f; objectScale=1f }
+        }
+    }
     private fun screenToGround(x:Float,y:Float):FloatArray? {
         val inv=FloatArray(16); if (!Matrix.invertM(inv,0,vp,0)) return null
         val nx=2f*x/viewportWidth-1f; val ny=1f-2f*y/viewportHeight
