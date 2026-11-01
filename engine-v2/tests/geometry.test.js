@@ -58,3 +58,19 @@ test("el inspector detecta una malla con borde abierto",()=>{
  assert.equal(report.closed,false);
  assert.equal(report.boundaryEdges,3);
 });
+
+test("triangula y extruye perfiles cóncavos en ambos sentidos",()=>{
+ const ccw=[{x:0,y:0},{x:8,y:0},{x:8,y:3},{x:3,y:3},{x:3,y:8},{x:0,y:8}];
+ for(const points of [ccw,[...ccw].reverse()]){
+  const mesh=extrudePolygon(points,5);
+  const report=inspectMeshTopology(mesh);
+  assert.equal(report.triangleCount,2*points.length-4);
+  assert.equal(report.closed,true);
+  assert.equal(report.boundaryEdges,0);
+  assert.equal(report.nonManifoldEdges,0);
+ }
+});
+test("rechaza perfil cóncavo degenerado sin triangulación",()=>{
+ const points=[{x:0,y:0},{x:4,y:0},{x:4,y:4},{x:2,y:2},{x:0,y:4}];
+ assert.equal(inspectMeshTopology(extrudePolygon(points,2)).closed,true);
+});
