@@ -70,6 +70,7 @@ private fun NocturneApp() {
                             ToolChip(tool, activeTool == tool) {
                                 activeTool = tool
                                 panel = tool
+                                if (tool != "Croquis") surface?.setSketchMode(false)
                             }
                         }
                     }
@@ -94,8 +95,14 @@ private fun NocturneApp() {
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier=Modifier.fillMaxWidth()) {
                         when (activeTool) {
-                            "Croquis" -> listOf("Línea", "Rectángulo", "Círculo", "Arco", "Plano").forEach { ToolChip(it, panel==it) { panel=it } }
-                            "Sólido" -> listOf("Extruir", "Revolución", "Cortar", "Unir").forEach { ToolChip(it, panel==it) { panel=it } }
+                            "Croquis" -> listOf("Rectángulo", "Línea", "Círculo", "Arco", "Plano").forEach { ToolChip(it, panel==it) {
+                                panel=it
+                                surface?.setSketchMode(it=="Rectángulo")
+                            } }
+                            "Sólido" -> listOf("Extruir", "Revolución", "Cortar", "Unir").forEach { ToolChip(it, panel==it) {
+                                panel=it
+                                if (it=="Extruir") surface?.extrudeSketch()
+                            } }
                             "Transformar" -> listOf("Mover", "Rotar", "Escalar", "Duplicar").forEach { ToolChip(it, panel==it) { panel=it } }
                             else -> listOf("Caja", "Cilindro", "Ajustar vista").forEach { ToolChip(it, panel==it) {
                                 panel=it
