@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {validatePolygon,extrudePolygon,extrudeCircle,extrudeProfile,Plane,Vec3} from "../geometry.js";
+import {validatePolygon,extrudePolygon,extrudeCircle,extrudeProfile,inspectMeshTopology,Plane,Vec3} from "../geometry.js";
 
 test("valida perfil rectangular y calcula área",()=>{
  const p=validatePolygon([{x:0,y:0},{x:20,y:0},{x:20,y:10},{x:0,y:10}]);
