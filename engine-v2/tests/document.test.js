@@ -17,3 +17,13 @@ test("serializa y restaura el árbol de características",()=>{
  assert.equal(restored.features.length,1);
  assert.equal(restored.regenerate().metadata.depth,2);
 });
+
+test("importa una malla STL validada como feature regenerable",()=>{
+ const doc=new CadDocument("STL");
+ const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0],triangles:[0,1,2],metadata:{sourceFormat:"ascii",units:null}};
+ doc.addImportedMesh(mesh);
+ const result=doc.regenerate();
+ assert.equal(result.kind,"triangle-mesh");
+ assert.equal(doc.features[0].type,"import-mesh");
+ assert.throws(()=>doc.addImportedMesh({...mesh,triangles:[0,1,8]}),/índices/);
+});
