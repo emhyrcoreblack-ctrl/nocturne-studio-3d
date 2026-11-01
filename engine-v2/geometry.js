@@ -155,7 +155,7 @@ export function inspectMeshTopology(mesh) {
       throw new RangeError("Índice de vértice fuera de rango");
     if(new Set(tri).size!==3) degenerateTriangles++;
     for(let j=0;j<3;j++) {
-      const a=tri[j],b=tri[(j+1)%3],key=a<b?\x60${a}:${b}\x60:\x60${b}:${a}\x60;
+      const a=tri[j],b=tri[(j+1)%3],key=a<b?a+":"+b:b+":"+a;
       edges.set(key,(edges.get(key)??0)+1);
     }
   }
