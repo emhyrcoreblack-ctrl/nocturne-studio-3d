@@ -81,16 +81,47 @@ export function extrudePolygon(points, depth, plane = Plane.XY()) {
   for (const q of p) add(plane.toWorld({x:q.x,y:q.y}).add(plane.normal.scale(depth)));
   const triangles = [];
   const n=p.length;
-  // Triangulación en abanico: válida para perfiles convexos; perfiles cóncavos se rechazan en esta primera versión.
+  // Ear clipping: triangulación de polígonos simples, convexos o cóncavos.
   const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
-  const convex = p.every((_,i)=> {
-    const a=p[i],b=p[(i+1)%n],c=p[(i+2)%n];
-    return cross(a,b,c) * (profile.clockwise?-1:1) >= -EPSILON;
-  });
-  if(!convex) throw new RangeError("Este primer extrusor admite perfiles convexos simples; triangulación cóncava pendiente");
-  for(let i=1;i<n-1;i++) {
-    triangles.push(...(profile.clockwise?[0,i,i+1]:[0,i+1,i]));
-    triangles.push(...(profile.clockwise?[n,n+i+1,n+i]:[n,n+i,n+i+1]));
+  const orientation=profile.clockwise?-1:1;
+  const remaining=[...p.keys()];
+  const cap=[];
+  const inTriangle=(q,a,b,c)=>{
+    const c1=cross(a,b,q)*orientation,c2=cross(b,c,q)*orientation,c3=cross(c,a,q)*orientation;
+    return c1>=-EPSILON&&c2>=-EPSILON&&c3>=-EPSILON;
+  };
+  let guard=0;
+  while(remaining.length>3 && guard++<n*n){
+    let clipped=false;
+    for(let k=0;k<remaining.length;k++){
+      const ia=remaining[(k+remaining.length-1)%remaining.length];
+      const ib=remaining[k];
+      const ic=remaining[(k+1)%remaining.length];
+      const a=p[ia],b=p[ib],c=p[ic];
+      if(cross(a,b,c)*orientation<=EPSILON) continue;
+      let contains=false;
+      for(const idx of remaining){
+        if(idx===ia||idx===ib||idx===ic) continue;
+        if(inTriangle(p[idx],a,b,c)){contains=true;break;}
+      }
+      if(contains) continue;
+      cap.push([ia,ib,ic]);
+      remaining.splice(k,1);
+      clipped=true;
+      break;
+    }
+    if(!clipped) throw new RangeError("No se pudo triangular el perfil; revisa vértices colineales o contorno degenerado");
+  }
+  if(remaining.length!==3||Math.abs(cross(p[remaining[0]],p[remaining[1]],p[remaining[2]]))<EPSILON)
+    throw new RangeError("La triangulación produjo una cara degenerada");
+  cap.push([...remaining]);
+  for(const tri of cap){
+    const [a,b,c]=tri;
+    if(profile.clockwise){
+      triangles.push(a,b,c,n+c,n+b,n+a);
+    } else {
+      triangles.push(a,c,b,n+b,n+c,n+a);
+    }
   }
   for(let i=0;i<n;i++) {
     const j=(i+1)%n;
