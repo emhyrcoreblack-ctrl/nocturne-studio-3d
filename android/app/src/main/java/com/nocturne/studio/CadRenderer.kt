@@ -36,6 +36,14 @@ class CadRenderer : GLSurfaceView.Renderer {
     private var sketchDragging = false
     @Volatile private var sketchType = "Rectángulo"
     private var extruded = false
+    private data class Snapshot(val primitive:Int, val start:FloatArray?, val end:FloatArray?, val sketchType:String, val extruded:Boolean, val height:Float, val scale:Float, val yaw:Float, val x:Float, val z:Float)
+    private val undoStack = ArrayDeque<Snapshot>()
+    private val redoStack = ArrayDeque<Snapshot>()
+    private fun snapshot() = Snapshot(primitive, sketchStart?.copyOf(), sketchEnd?.copyOf(), sketchType, extruded, extrusionHeight, objectScale, objectYaw, objectX, objectZ)
+    private fun rememberChange() { undoStack.addLast(snapshot()); if (undoStack.size > 60) undoStack.removeFirst(); redoStack.clear() }
+    private fun restore(s:Snapshot) { primitive=s.primitive; sketchStart=s.start?.copyOf(); sketchEnd=s.end?.copyOf(); sketchType=s.sketchType; extruded=s.extruded; extrusionHeight=s.height; objectScale=s.scale; objectYaw=s.yaw; objectX=s.x; objectZ=s.z }
+    fun undo() { if (undoStack.isNotEmpty()) { redoStack.addLast(snapshot()); restore(undoStack.removeLast()) } }
+    fun redo() { if (redoStack.isNotEmpty()) { undoStack.addLast(snapshot()); restore(redoStack.removeLast()) } }
     @Volatile private var extrusionHeight = 1.0f
     @Volatile private var objectScale = 1.0f
     @Volatile private var objectYaw = 0.0f
@@ -102,16 +110,17 @@ class CadRenderer : GLSurfaceView.Renderer {
     fun orbit(dx:Float,dy:Float) { yaw-=dx*.008f; pitch=(pitch+dy*.008f).coerceIn(-1.35f,1.35f) }
     fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,18f) }
     fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; primitive=0 }
-    fun setPrimitive(type:Int) { primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null }
-    fun setSketchType(type:String) { sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
+    fun setPrimitive(type:Int) { rememberChange(); primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null }
+    fun setSketchType(type:String) { rememberChange(); sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
     fun sketchTouch(x:Float,y:Float,down:Boolean,finish:Boolean) {
         val p = screenToGround(x,y) ?: return
-        if (down) { sketchStart=p; sketchEnd=p; sketchDragging=true; extruded=false }
+        if (down) { rememberChange(); sketchStart=p; sketchEnd=p; sketchDragging=true; extruded=false }
         else if (sketchDragging) { sketchEnd=p; if (finish) sketchDragging=false }
     }
-    fun extrudeSketch() { if (sketchStart != null && sketchEnd != null && sketchType != "Línea") { extruded=true; primitive=2 } }
+    fun extrudeSketch() { if (sketchStart != null && sketchEnd != null && sketchType != "Línea") { rememberChange(); extruded=true; primitive=2 } }
     fun setExtrusionHeight(value:Float) { extrusionHeight=value.coerceIn(0.1f,8f) }
     fun transform(action:String) {
+        rememberChange()
         when(action) {
             "Mover X" -> objectX += 0.25f
             "Mover Z" -> objectZ += 0.25f
