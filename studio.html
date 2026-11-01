@@ -143,7 +143,7 @@ const axes=new THREE.AxesHelper(24);axes.position.set(-48,.1,-48);scene.add(axes
 const material=new THREE.MeshStandardMaterial({color:0x8eafd7,metalness:.48,roughness:.28});
 let solid=null,wire=null,wireOn=false;
 const cadDocument=new CadDocument("NOCTURNE");
-let importedMesh=null;
+let importedMesh=null,selectionHelper=null;
 const $=id=>document.getElementById(id);
 function showMesh(mesh,{fit=false}={}){
  const report=inspectMeshTopology(mesh),geo=new THREE.BufferGeometry();
@@ -153,6 +153,7 @@ function showMesh(mesh,{fit=false}={}){
  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x17283d,transparent:true,opacity:.8}));
  edges.visible=wireOn;next.add(edges);
  if(solid){scene.remove(solid);solid.geometry.dispose();solid.children[0]?.geometry?.dispose();}
+ if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
  solid=next;wire=edges;scene.add(solid);
  $("vertices").textContent=report.vertexCount;$("triangles").textContent=report.triangleCount;$("edges").textContent=report.boundaryEdges;
  $("closed").textContent=report.closed?"Cerrado":"Revisar";$("closed").style.color=report.closed?"#8de0bd":"#ff9a8b";
@@ -190,7 +191,29 @@ $("newModel").addEventListener("click",()=>{
  importedMesh=null;["shape","width","depth","radius","height"].forEach(id=>$(id).disabled=false);
  build();setView("iso");$("status").textContent="● Nuevo modelo paramétrico";
 });
-$("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn;$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
+
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+let pressPoint=null;
+renderer.domElement.addEventListener("pointerdown",event=>{pressPoint={x:event.clientX,y:event.clientY};});
+renderer.domElement.addEventListener("pointerup",event=>{
+ if(!pressPoint)return;
+ const moved=Math.hypot(event.clientX-pressPoint.x,event.clientY-pressPoint.y);pressPoint=null;
+ if(moved>5||!solid)return;
+ const rect=renderer.domElement.getBoundingClientRect();
+ pointer.set(((event.clientX-rect.left)/rect.width)*2-1,-((event.clientY-rect.top)/rect.height)*2+1);
+ raycaster.setFromCamera(pointer,camera);
+ const hits=raycaster.intersectObject(solid,false);
+ if(hits.length){
+  if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();}
+  selectionHelper=new THREE.BoxHelper(solid,0x8de0bd);selectionHelper.material.depthTest=false;selectionHelper.material.transparent=true;selectionHelper.material.opacity=.95;selectionHelper.renderOrder=10;scene.add(selectionHelper);
+  const face=hits[0].faceIndex;
+  $("status").textContent="● Objeto seleccionado · cara "+(face+1)+" · "+(importedMesh?"STL importado":"sólido paramétrico");
+ }else{
+  if(selectionHelper){scene.remove(selectionHelper);selectionHelper.geometry.dispose();selectionHelper.material.dispose();selectionHelper=null;}
+  $("status").textContent=importedMesh?"● STL importado · sin selección":"● Motor geométrico conectado";
+ }
+});
+\n$("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn;$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
 $("reset").addEventListener("click",()=>{camera.position.set(95,82,115);controls.target.set(0,12,0);controls.update();});
 
 const panel=document.querySelector(".panel");
