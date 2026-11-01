@@ -46,7 +46,7 @@ export function importSTL(input,{tolerance=1e-7}={}) {
   const bytes=bytesOf(input);
   let parsed;
   // El tamaño exacto prevalece: un STL binario puede comenzar con la palabra "solid".
-  if(bytes.byteLength>=84 && 84+new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(80,true)===bytes.byteLength)
+  if(bytes.byteLength>=84 && 84+new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(80,true)*50===bytes.byteLength)
     parsed=parseBinary(bytes);
   else {
     let text;
