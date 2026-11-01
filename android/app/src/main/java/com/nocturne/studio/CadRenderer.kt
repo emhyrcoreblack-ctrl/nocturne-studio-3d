@@ -34,6 +34,7 @@ class CadRenderer : GLSurfaceView.Renderer {
     private var sketchStart: FloatArray? = null
     private var sketchEnd: FloatArray? = null
     private var sketchDragging = false
+    @Volatile private var sketchType = "Rectángulo"
     private var extruded = false
     @Volatile private var extrusionHeight = 1.0f
     @Volatile private var objectScale = 1.0f
@@ -77,12 +78,13 @@ class CadRenderer : GLSurfaceView.Renderer {
         GLES20.glUniformMatrix4fv(mvpHandle,1,false,mvp,0)
         draw(grid,gridCount,GLES20.GL_LINES)
         if (extruded && sketchStart != null && sketchEnd != null) {
-            val mesh = buffer(extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight))
+            val vertices = if (sketchType == "Círculo") circleExtrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight) else extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight)
+            val mesh = buffer(vertices)
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
         } else if (primitive==0) draw(cube,cubeCount,GLES20.GL_TRIANGLES)
         else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
         if (sketchStart != null && sketchEnd != null && !extruded) {
-            val outline = buffer(rectangleLines(sketchStart!!, sketchEnd!!))
+            val outline = buffer(if (sketchType == "Círculo") circleLines(sketchStart!!, sketchEnd!!) else rectangleLines(sketchStart!!, sketchEnd!!))
             GLES20.glLineWidth(3f); draw(outline, outline.limit()/7, GLES20.GL_LINES)
         }
     }
@@ -101,6 +103,7 @@ class CadRenderer : GLSurfaceView.Renderer {
     fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,18f) }
     fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; primitive=0 }
     fun setPrimitive(type:Int) { primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null }
+    fun setSketchType(type:String) { sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
     fun sketchTouch(x:Float,y:Float,down:Boolean,finish:Boolean) {
         val p = screenToGround(x,y) ?: return
         if (down) { sketchStart=p; sketchEnd=p; sketchDragging=true; extruded=false }
@@ -137,6 +140,33 @@ class CadRenderer : GLSurfaceView.Renderer {
         val p=arrayOf(floatArrayOf(x0,0f,z0),floatArrayOf(x1,0f,z0),floatArrayOf(x1,0f,z1),floatArrayOf(x0,0f,z1))
         for(i in 0..3) { val q=p[i]; val r=p[(i+1)%4]; add(o,q[0],q[1],q[2],c); add(o,r[0],r[1],r[2],c) }
         return o.toFloatArray()
+    }
+    private fun circleLines(center:FloatArray, edge:FloatArray):FloatArray {
+        val dx=edge[0]-center[0]; val dz=edge[2]-center[2]
+        val radius=kotlin.math.sqrt(dx*dx+dz*dz)
+        val out=ArrayList<Float>(); val c=floatArrayOf(.35f,.78f,1f,1f); val n=64
+        for(i in 0 until n) {
+            val a=2.0*Math.PI*i/n; val b=2.0*Math.PI*(i+1)/n
+            add(out,center[0]+radius*cos(a).toFloat(),0f,center[2]+radius*sin(a).toFloat(),c)
+            add(out,center[0]+radius*cos(b).toFloat(),0f,center[2]+radius*sin(b).toFloat(),c)
+        }
+        return out.toFloatArray()
+    }
+    private fun circleExtrusionVertices(center:FloatArray,edge:FloatArray,h:Float):FloatArray {
+        val dx=edge[0]-center[0]; val dz=edge[2]-center[2]
+        val radius=kotlin.math.sqrt(dx*dx+dz*dz).coerceAtLeast(.03f)
+        val out=ArrayList<Float>(); val c=floatArrayOf(.25f,.57f,.88f,1f); val n=64
+        for(i in 0 until n) {
+            val a=2.0*Math.PI*i/n; val b=2.0*Math.PI*(i+1)/n
+            val x0=center[0]+radius*cos(a).toFloat(); val z0=center[2]+radius*sin(a).toFloat()
+            val x1=center[0]+radius*cos(b).toFloat(); val z1=center[2]+radius*sin(b).toFloat()
+            val p0=floatArrayOf(x0,0f,z0); val p1=floatArrayOf(x1,0f,z1)
+            val p2=floatArrayOf(x1,h,z1); val p3=floatArrayOf(x0,h,z0)
+            for(v in listOf(p0,p1,p2,p0,p2,p3)) add(out,v[0],v[1],v[2],c)
+            add(out,center[0],0f,center[2],c); add(out,x1,0f,z1,c); add(out,x0,0f,z0,c)
+            add(out,center[0],h,center[2],c); add(out,x0,h,z0,c); add(out,x1,h,z1,c)
+        }
+        return out.toFloatArray()
     }
     private fun extrusionVertices(a:FloatArray,b:FloatArray,h:Float):FloatArray {
         val x0=minOf(a[0],b[0]); val x1=maxOf(a[0],b[0]); val z0=minOf(a[2],b[2]); val z1=maxOf(a[2],b[2])
