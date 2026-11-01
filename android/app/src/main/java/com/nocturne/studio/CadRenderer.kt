@@ -62,7 +62,7 @@ class CadRenderer : GLSurfaceView.Renderer {
         GLES20.glUniformMatrix4fv(mvpHandle,1,false,mvp,0)
         draw(grid,gridCount,GLES20.GL_LINES)
         if (primitive==0) draw(cube,cubeCount,GLES20.GL_TRIANGLES)
-        else draw(cylinder(),cylinder().size/7,GLES20.GL_TRIANGLES)
+        else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
     }
 
     private fun draw(data: FloatBuffer,count:Int,mode:Int) {
