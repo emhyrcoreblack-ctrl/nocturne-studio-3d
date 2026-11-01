@@ -102,9 +102,9 @@ private fun NocturneApp() {
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier=Modifier.fillMaxWidth()) {
                         when (activeTool) {
-                            "Croquis" -> listOf("Rectángulo", "Línea", "Círculo", "Arco", "Plano").forEach { ToolChip(it, panel==it) {
+                            "Croquis" -> listOf("Rectángulo", "Círculo").forEach { ToolChip(it, panel==it) {
                                 panel=it
-                                surface?.setSketchMode(it=="Rectángulo")
+                                surface?.setSketchType(it)
                             } }
                             "Sólido" -> listOf("Extruir", "Revolución", "Cortar", "Unir").forEach { ToolChip(it, panel==it) {
                                 panel=it
