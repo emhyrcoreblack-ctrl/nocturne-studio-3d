@@ -26,6 +26,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     private fun set背景() { setZOrderOnTop(false) }
 
     fun resetView() { queueEvent { cadRenderer.resetView() } }
+    fun setView(name:String) { queueEvent { cadRenderer.setView(name) } }
     fun undo() { queueEvent { cadRenderer.undo() } }
     fun redo() { queueEvent { cadRenderer.redo() } }
     fun setPrimitive(type: Int) { sketchMode=false; queueEvent { cadRenderer.setPrimitive(type) } }
