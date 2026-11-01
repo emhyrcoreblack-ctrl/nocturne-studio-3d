@@ -10,6 +10,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     private var lastX = 0f
     private var lastY = 0f
     private var lastSpan = 0f
+    @Volatile private var sketchMode = false
 
     init {
         setEGLContextClientVersion(2)
@@ -21,19 +22,24 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     private fun set背景() { setZOrderOnTop(false) }
 
     fun resetView() { queueEvent { cadRenderer.resetView() } }
-    fun setPrimitive(type: Int) { queueEvent { cadRenderer.setPrimitive(type) } }
+    fun setPrimitive(type: Int) { sketchMode=false; queueEvent { cadRenderer.setPrimitive(type) } }
+    fun setSketchMode(enabled: Boolean) { sketchMode=enabled }
+    fun extrudeSketch() { sketchMode=false; queueEvent { cadRenderer.extrudeSketch() } }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 lastX = event.x; lastY = event.y
+                if (sketchMode) queueEvent { cadRenderer.sketchTouch(event.x,event.y,true,false) }
                 return true
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 lastSpan = span(event); return true
             }
             MotionEvent.ACTION_MOVE -> {
-                if (event.pointerCount >= 2) {
+                if (sketchMode && event.pointerCount == 1) {
+                    queueEvent { cadRenderer.sketchTouch(event.x,event.y,false,false) }
+                } else if (event.pointerCount >= 2) {
                     val now = span(event)
                     if (lastSpan > 0f) {
                         val factor = (lastSpan / now.coerceAtLeast(1f)).coerceIn(.88f,1.12f)
@@ -48,7 +54,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
                 return true
             }
             MotionEvent.ACTION_POINTER_UP -> { lastSpan=0f; return true }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { lastSpan=0f; return true }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { if (sketchMode) queueEvent { cadRenderer.sketchTouch(event.x,event.y,false,true) }; lastSpan=0f; return true }
         }
         return true
     }
