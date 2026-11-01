@@ -23,6 +23,22 @@ footer{color:#72839b;font-size:11px;margin:14px 4px}
 @media(max-width:800px){.workspace{grid-template-columns:1fr}.viewport{min-height:420px}.viewport canvas{height:420px}.panel{display:grid;grid-template-columns:1fr 1fr}.panel h2,.stats,.note{grid-column:1/-1}.actions{align-self:end}}
 @media(max-width:480px){.panel{grid-template-columns:1fr}.field,.actions{grid-column:1/-1}.viewport canvas{height:360px}.viewport{min-height:360px}}
 </style>
+<style>
+/* Interactive 3D orientation cube */
+.orientation-widget{position:absolute;z-index:7;right:18px;top:72px;width:142px;height:142px;perspective:520px;pointer-events:none}
+.orientation-cube{position:absolute;inset:20px;transform-style:preserve-3d;transform:rotateX(-30deg) rotateY(38deg);transition:transform .35s ease;pointer-events:auto}
+.orientation-face{position:absolute;width:102px;height:102px;left:0;top:0;display:grid;place-items:center;border:2px solid #e5edf8;background:linear-gradient(145deg,#f8fbff,#cbd8e8);color:#15243a;font-size:13px;font-weight:800;letter-spacing:.03em;box-shadow:inset 0 0 0 1px #a8b9cf;backface-visibility:visible;cursor:pointer;user-select:none}
+.orientation-face:active{background:#9fc4fa}
+.orientation-face.front{transform:translateZ(51px)}
+.orientation-face.back{transform:rotateY(180deg) translateZ(51px)}
+.orientation-face.right{transform:rotateY(90deg) translateZ(51px)}
+.orientation-face.left{transform:rotateY(-90deg) translateZ(51px)}
+.orientation-face.top{transform:rotateX(90deg) translateZ(51px)}
+.orientation-face.bottom{transform:rotateX(-90deg) translateZ(51px)}
+.orientation-face small{font-size:10px;font-weight:600}
+.axis-mark{position:absolute;left:2px;bottom:0;font-size:10px;color:#9db8dc;pointer-events:none}
+@media(max-width:760px){.orientation-widget{top:66px;right:8px;transform:scale(.78);transform-origin:top right}.cad-top{right:12px}}
+</style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
 <style>
 /* NOCTURNE CAD workspace layer */
@@ -77,7 +93,15 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <section class="viewport" aria-label="Visor tridimensional interactivo">
 <div class="cad-top"><div class="cad-brand">NOCTURNE <span>STUDIO 3D</span></div><button class="cad-pill">＋ Nuevo</button><button class="cad-pill secondary">↶ Deshacer</button><button class="cad-pill secondary">↷ Rehacer</button></div>
 <div class="cad-rail"><button class="cad-tool active" title="Seleccionar">↖</button><button class="cad-tool" title="Boceto">✎</button><button class="cad-tool" title="Línea">／</button><button class="cad-tool" title="Rectángulo">▱</button><button class="cad-tool" title="Círculo">◯</button><button class="cad-tool" title="Extruir">⬆</button></div>
-<div class="view-label">ESPACIO DE DISEÑO · MM</div><div class="hint">Arrastra para girar · rueda o pellizco para zoom</div>
+<div class="view-label">ESPACIO DE DISEÑO · MM</div>
+<div class="orientation-widget" aria-label="Cubo de orientación 3D"><div class="orientation-cube" id="orientationCube">
+<button class="orientation-face front" data-orientation="front">FRONT</button>
+<button class="orientation-face right" data-orientation="right">RIGHT</button>
+<button class="orientation-face top" data-orientation="top">TOP</button>
+<button class="orientation-face back" data-orientation="back">BACK</button>
+<button class="orientation-face left" data-orientation="left">LEFT</button>
+<button class="orientation-face bottom" data-orientation="bottom">BOTTOM</button>
+</div><div class="axis-mark">X · Y · Z</div></div><div class="hint">Arrastra para girar · rueda o pellizco para zoom</div>
 </section>
 <button id="panelToggle" class="cad-pill">Propiedades ☰</button><aside class="panel">
 <h2>Geometría de prueba</h2>
@@ -93,7 +117,7 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <div class="stat"><small>Aristas abiertas</small><strong id="edges">0</strong></div>
 <div class="stat"><small>Estado topológico</small><strong id="closed" style="font-size:14px;color:var(--mint)">Cerrado</strong></div>
 </div>
-<div class="cad-bottom"><button id="viewIso">Isométrica</button><button id="viewTop">Superior</button><button id="viewFront">Frontal</button><button id="viewRight">Lateral</button></div><div class="status" id="status">● Motor geométrico conectado</div>
+<div class="cad-bottom"><button id="viewIso">Isométrica</button><button id="viewFit">Ajustar vista</button></div><div class="status" id="status">● Motor geométrico conectado</div>
 <p class="note">Vista técnica preliminar. El visor muestra mallas triangulares generadas por engine-v2; todavía no es la interfaz CAD definitiva ni un kernel B-rep.</p>
 </aside>
 </div>
@@ -142,10 +166,12 @@ const panel=document.querySelector(".panel");
 $("panelToggle").addEventListener("click",()=>{panel.classList.toggle("collapsed");$("panelToggle").textContent=panel.classList.contains("collapsed")?"Mostrar propiedades ☰":"Ocultar propiedades ×";});
 function setView(name){
  const target=new THREE.Vector3(0,12,0),dist=160;
- const positions={iso:[95,82,115],top:[0,dist,0.01],front:[0,12,dist],right:[dist,12,0],left:[-dist,12,0],back:[0,12,-dist]};
+ const positions={iso:[95,82,115],top:[0,dist,0.01],front:[0,12,dist],right:[dist,12,0],left:[-dist,12,0],back:[0,12,-dist],bottom:[0,-dist,0.01]};
  const v=positions[name]||positions.iso;camera.position.set(target.x+v[0],target.y+v[1],target.z+v[2]);controls.target.copy(target);controls.update();
 }
-$("viewIso").addEventListener("click",()=>setView("iso"));$("viewTop").addEventListener("click",()=>setView("top"));$("viewFront").addEventListener("click",()=>setView("front"));$("viewRight").addEventListener("click",()=>setView("right"));
+document.querySelectorAll("[data-orientation]").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.orientation)));
+$("viewIso").addEventListener("click",()=>setView("iso"));
+$("viewFit").addEventListener("click",()=>{controls.target.set(0,12,0);camera.position.set(95,82,115);controls.update();});
 
 function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(host);resize();build();
