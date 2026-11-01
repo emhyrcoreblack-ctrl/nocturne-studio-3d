@@ -83,9 +83,6 @@ export function extrudePolygon(points, depth, plane = Plane.XY()) {
   const n=p.length;
   // Triangulación en abanico: válida para perfiles convexos; perfiles cóncavos se rechazan en esta primera versión.
   const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
-  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) for(let k=j+1;k<n;k++) {
-    // No se usa esta búsqueda como triangulador; el abanico se valida a continuación.
-  }
   const convex = p.every((_,i)=> {
     const a=p[i],b=p[(i+1)%n],c=p[(i+2)%n];
     return cross(a,b,c) * (profile.clockwise?-1:1) >= -EPSILON;
@@ -97,7 +94,8 @@ export function extrudePolygon(points, depth, plane = Plane.XY()) {
   }
   for(let i=0;i<n;i++) {
     const j=(i+1)%n;
-    triangles.push(i,j,n+j, i,n+j,n+i);
+    if(profile.clockwise) triangles.push(i,n+j,j, i,n+i,n+j);
+    else triangles.push(i,j,n+j, i,n+j,n+i);
   }
   return {
     kind:"triangle-mesh", vertices, triangles,
@@ -139,4 +137,29 @@ export function extrudeProfile(profile, depth, plane = Plane.XY(), options = {})
   if(profile?.kind==="polygon") return extrudePolygon(profile.points,depth,plane);
   if(profile?.kind==="circle") return extrudeCircle(profile.center,profile.radius,depth,plane,options.segments??64);
   throw new TypeError("Tipo de perfil no compatible para extrusión");
+}
+
+
+/** Count undirected triangle-mesh edges; a closed 2-manifold has count 2 for every edge. */
+export function inspectMeshTopology(mesh) {
+  if(mesh?.kind!=="triangle-mesh" || !Array.isArray(mesh.vertices) || !Array.isArray(mesh.triangles))
+    throw new TypeError("Se esperaba una malla triangular");
+  if(mesh.vertices.length%3!==0 || mesh.triangles.length%3!==0)
+    throw new RangeError("Datos de malla incompletos");
+  const vertexCount=mesh.vertices.length/3;
+  const edges=new Map();
+  let degenerateTriangles=0;
+  for(let i=0;i<mesh.triangles.length;i+=3) {
+    const tri=mesh.triangles.slice(i,i+3);
+    if(tri.some(index=>!Number.isInteger(index)||index<0||index>=vertexCount))
+      throw new RangeError("Índice de vértice fuera de rango");
+    if(new Set(tri).size!==3) degenerateTriangles++;
+    for(let j=0;j<3;j++) {
+      const a=tri[j],b=tri[(j+1)%3],key=a<b?\x60${a}:${b}\x60:\x60${b}:${a}\x60;
+      edges.set(key,(edges.get(key)??0)+1);
+    }
+  }
+  const boundaryEdges=[...edges.values()].filter(count=>count===1).length;
+  const nonManifoldEdges=[...edges.values()].filter(count=>count!==2).length;
+  return {vertexCount,triangleCount:mesh.triangles.length/3,edgeCount:edges.size,boundaryEdges,nonManifoldEdges,degenerateTriangles,closed:boundaryEdges===0&&nonManifoldEdges===0&&degenerateTriangles===0};
 }
