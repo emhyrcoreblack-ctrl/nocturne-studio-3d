@@ -331,7 +331,8 @@ renderer.domElement.addEventListener("pointerup",event=>{
   $("status").textContent=importedMesh?"● STL importado · sin selección":"● Motor geométrico conectado";
  }
 });
-\n$("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn||selectionMode==="edge";$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
+
+$("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn||selectionMode==="edge";$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
 $("reset").addEventListener("click",fitModel);
 
 const panel=document.querySelector(".panel");
@@ -350,7 +351,7 @@ $("viewIso").addEventListener("click",()=>setView("iso"));
 $("viewFit").addEventListener("click",fitModel);
 
 function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-new ResizeObserver(resize).observe(host);resize();build();
+new ResizeObserver(resize).observe(host);resize();build();fitModel();
 renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera);});
 </script>
 </body></html>
