@@ -75,9 +75,9 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
  .panel .actions{grid-column:1/-1}
  .cad-rail{left:9px;top:62px;gap:5px}
  .cad-tool{width:36px;height:36px;font-size:15px}
- .cad-bottom{bottom:calc(50% + 18px);left:50%;gap:3px}
+ .cad-bottom{bottom:12px;left:50%;gap:3px}
  .cad-bottom button{font-size:10px;padding:6px 7px}
- #panelToggle{right:10px;top:auto;bottom:calc(48% + 20px)}
+ #panelToggle{right:10px;top:auto;bottom:12px}
  .view-label{left:54px;top:15px;font-size:9px}
  .hint{left:12px;bottom:12px;font-size:10px}
 }
@@ -102,8 +102,9 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <button class="orientation-face left" data-orientation="left">LEFT</button>
 <button class="orientation-face bottom" data-orientation="bottom">BOTTOM</button>
 </div><div class="axis-mark">X · Y · Z</div></div><div class="hint">Arrastra para girar · rueda o pellizco para zoom</div>
+<div class="cad-bottom"><button id="viewIso">Isométrica</button><button id="viewFit">Ajustar vista</button></div>
 </section>
-<button id="panelToggle" class="cad-pill">Propiedades ☰</button><aside class="panel">
+<button id="panelToggle" class="cad-pill">Mostrar propiedades ☰</button><aside class="panel">
 <h2>Geometría de prueba</h2>
 <div class="field"><label for="shape">Perfil de extrusión</label><select id="shape"><option value="box">Prisma rectangular</option><option value="cylinder">Cilindro</option></select></div>
 <div class="field" id="widthField"><label for="width">Ancho <output id="widthOut">40 mm</output></label><input id="width" type="range" min="10" max="80" value="40"></div>
@@ -123,7 +124,7 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <div class="stat"><small>Aristas abiertas</small><strong id="edges">0</strong></div>
 <div class="stat"><small>Estado topológico</small><strong id="closed" style="font-size:14px;color:var(--mint)">Cerrado</strong></div>
 </div>
-<div class="cad-bottom"><button id="viewIso">Isométrica</button><button id="viewFit">Ajustar vista</button></div><div class="status" id="status">● Motor geométrico conectado</div>
+<div class="status" id="status">● Motor geométrico conectado</div>
 <p class="note">Vista técnica preliminar. El visor muestra mallas triangulares generadas por engine-v2; todavía no es la interfaz CAD definitiva ni un kernel B-rep.</p>
 </aside>
 </div>
@@ -334,7 +335,9 @@ renderer.domElement.addEventListener("pointerup",event=>{
 $("reset").addEventListener("click",fitModel);
 
 const panel=document.querySelector(".panel");
-$("panelToggle").addEventListener("click",()=>{panel.classList.toggle("collapsed");$("panelToggle").textContent=panel.classList.contains("collapsed")?"Mostrar propiedades ☰":"Ocultar propiedades ×";});
+const panelToggle=$("panelToggle");
+if(window.matchMedia("(max-width:760px)").matches){panel.classList.add("collapsed");panelToggle.textContent="Mostrar propiedades ☰";}
+panelToggle.addEventListener("click",()=>{panel.classList.toggle("collapsed");const closed=panel.classList.contains("collapsed");panelToggle.textContent=closed?"Mostrar propiedades ☰":"Ocultar propiedades ×";if(window.matchMedia("(max-width:760px)").matches)panelToggle.style.bottom=closed?"12px":"calc(48% + 20px)";});
 function setView(name){
  const box=modelBounds(),target=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
  const dist=Math.max(size.x,size.y,size.z,1)*2.5;
