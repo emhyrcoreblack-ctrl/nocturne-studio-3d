@@ -41,6 +41,28 @@ footer{color:#72839b;font-size:11px;margin:14px 4px}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
 <style>
+/* NOCTURNE mobile-first CAD shell */
+header{display:none}
+main{padding:0 8px 8px}
+.workspace{height:calc(100dvh - 8px);min-height:0}
+.viewport{min-height:0}
+@media(max-width:760px){
+  main{padding:0}
+  .workspace{height:100dvh;min-height:0}
+  .viewport{border-radius:0;border-left:0;border-right:0}
+  .cad-top{left:54px;right:8px;top:8px;gap:5px}
+  .cad-brand{font-size:9px;letter-spacing:.09em}
+  .cad-top .cad-pill{padding:7px 8px;font-size:11px;white-space:nowrap}
+  .cad-rail{top:62px}
+  .orientation-widget{top:66px;right:8px}
+  .panel{max-height:54dvh;bottom:8px;padding:13px;grid-template-columns:1fr 1fr;overflow-y:auto;overscroll-behavior:contain}
+  .panel.collapsed{transform:translateY(calc(100% + 18px));pointer-events:none}
+  .panel:not(.collapsed){box-shadow:0 -18px 55px #0009}
+  .workspace:has(.panel:not(.collapsed)) .cad-bottom{display:none}
+  #panelToggle{bottom:12px;right:10px}
+  .view-label{left:54px}
+  .hint{left:12px;bottom:12px}
+}
 /* NOCTURNE CAD workspace layer */
 body{background:#090e16}
 header{height:54px;padding:0 18px;background:#101722;border-bottom:1px solid #29384b}
@@ -338,7 +360,7 @@ $("reset").addEventListener("click",fitModel);
 const panel=document.querySelector(".panel");
 const panelToggle=$("panelToggle");
 if(window.matchMedia("(max-width:760px)").matches){panel.classList.add("collapsed");panelToggle.textContent="Mostrar propiedades ☰";}
-panelToggle.addEventListener("click",()=>{panel.classList.toggle("collapsed");const closed=panel.classList.contains("collapsed");panelToggle.textContent=closed?"Mostrar propiedades ☰":"Ocultar propiedades ×";if(window.matchMedia("(max-width:760px)").matches)panelToggle.style.bottom=closed?"12px":"calc(48% + 20px)";});
+panelToggle.addEventListener("click",()=>{panel.classList.toggle("collapsed");const closed=panel.classList.contains("collapsed");panelToggle.textContent=closed?"Mostrar propiedades ☰":"Ocultar propiedades ×";if(window.matchMedia("(max-width:760px)").matches)panelToggle.style.bottom=closed?"12px":"calc(54dvh + 18px)";});
 function setView(name){
  const box=modelBounds(),target=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
  const dist=Math.max(size.x,size.y,size.z,1)*2.5;
