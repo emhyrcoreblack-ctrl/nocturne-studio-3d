@@ -85,8 +85,8 @@ private fun NocturneApp() {
                             Text("PROPIEDADES", color = Accent, fontSize = 10.sp)
                             Spacer(Modifier.height(8.dp))
                             Text("Objeto", color = Muted, fontSize = 11.sp)
-                            Text(if(selectedFace >= 0) "Cara seleccionada" else "Sin selección", fontSize = 13.sp)
-                            Text(if(selectedFace >= 0) listOf("Frontal","Posterior","Superior","Inferior","Derecha","Izquierda").getOrElse(selectedFace) { "Cara" } else "Toca una cara del cubo para seleccionarla", color=Muted, fontSize=10.sp)
+                            Text(if(selectedFace >= 0) "Cara seleccionada" else "Sin geometría", fontSize = 13.sp)
+                            Text(if(selectedFace >= 0) listOf("Frontal","Posterior","Superior","Inferior","Derecha","Izquierda").getOrElse(selectedFace) { "Cara" } else "Empieza creando un croquis sobre el plano", color=Muted, fontSize=10.sp)
                             Spacer(Modifier.height(12.dp))
                             Text("Vista", color = Muted, fontSize = 11.sp)
                             Text("Perspectiva", fontSize = 13.sp)
@@ -117,17 +117,15 @@ private fun NocturneApp() {
                                 panel=it
                                 surface?.transform(it)
                             } }
-                            else -> listOf("Caja", "Cilindro", "Ajustar vista").forEach { ToolChip(it, panel==it) {
+                            else -> listOf("Ajustar vista").forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 if (it=="Ajustar vista") surface?.resetView()
-                                if (it=="Caja") surface?.setPrimitive(0)
-                                if (it=="Cilindro") surface?.setPrimitive(1)
                             } }
                         }
                     }
                 }
             }
-            Text("Toca el cubo para seleccionar una cara · Arrastra para orbitar · Pellizca para zoom", Modifier.align(Alignment.TopCenter).padding(top=74.dp)
+            Text("Plano de trabajo vacío · Crea tu geometría con Croquis · Arrastra para orbitar · Pellizca para zoom", Modifier.align(Alignment.TopCenter).padding(top=74.dp)
                 .background(Color(0x990B1018), RoundedCornerShape(20.dp)).padding(horizontal=12.dp, vertical=6.dp),
                 color=Muted, fontSize=10.sp)
         }
