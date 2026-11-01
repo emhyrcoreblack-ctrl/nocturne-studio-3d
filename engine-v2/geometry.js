@@ -128,6 +128,7 @@ export function extrudePolygon(points, depth, plane = Plane.XY()) {
     if(profile.clockwise) triangles.push(i,n+j,j, i,n+i,n+j);
     else triangles.push(i,j,n+j, i,n+j,n+i);
   }
+  if(depth<0) for(let i=0;i<triangles.length;i+=3) [triangles[i+1],triangles[i+2]]=[triangles[i+2],triangles[i+1]];
   return {
     kind:"triangle-mesh", vertices, triangles,
     metadata:{operation:"extrude",depth,profileVertexCount:n,units:"mm",plane:{origin:plane.origin.toJSON(),normal:plane.normal.toJSON()}}
@@ -160,6 +161,7 @@ export function extrudeCircle(center, radius, depth, plane = Plane.XY(), segment
     const j=(i+1)%segments;
     triangles.push(i,j,segments+j,i,segments+j,segments+i);
   }
+  if(depth<0) for(let i=0;i<triangles.length;i+=3) [triangles[i+1],triangles[i+2]]=[triangles[i+2],triangles[i+1]];
   return {kind:"triangle-mesh",vertices,triangles,metadata:{operation:"extrude-circle",depth,radius,segments,units:"mm",plane:{origin:plane.origin.toJSON(),normal:plane.normal.toJSON()}}};
 }
 
@@ -180,6 +182,7 @@ export function inspectMeshTopology(mesh) {
   const vertexCount=mesh.vertices.length/3;
   const edges=new Map();
   let degenerateTriangles=0;
+  let signedVolume=0;
   for(let i=0;i<mesh.triangles.length;i+=3) {
     const tri=mesh.triangles.slice(i,i+3);
     if(tri.some(index=>!Number.isInteger(index)||index<0||index>=vertexCount))
@@ -187,8 +190,10 @@ export function inspectMeshTopology(mesh) {
     if(new Set(tri).size!==3) degenerateTriangles++;
     const point=index=>new Vec3(mesh.vertices[index*3],mesh.vertices[index*3+1],mesh.vertices[index*3+2]);
     if(new Set(tri).size===3){
-      const area=point(tri[1]).sub(point(tri[0])).cross(point(tri[2]).sub(point(tri[0]))).length();
+      const a=point(tri[0]),b=point(tri[1]),c=point(tri[2]);
+      const area=b.sub(a).cross(c.sub(a)).length();
       if(!Number.isFinite(area)||area<EPSILON) degenerateTriangles++;
+      signedVolume+=a.dot(b.cross(c))/6;
     }
     for(let j=0;j<3;j++) {
       const a=tri[j],b=tri[(j+1)%3],lo=Math.min(a,b),hi=Math.max(a,b),key=lo+":"+hi;
@@ -201,5 +206,6 @@ export function inspectMeshTopology(mesh) {
   const boundaryEdges=[...edges.values()].filter(edge=>edge.count===1).length;
   const nonManifoldEdges=[...edges.values()].filter(edge=>edge.count!==2).length;
   const inconsistentWindingEdges=[...edges.values()].filter(edge=>edge.count===2&&(edge.forward!==1||edge.backward!==1)).length;
-  return {vertexCount,triangleCount:mesh.triangles.length/3,edgeCount:edges.size,boundaryEdges,nonManifoldEdges,degenerateTriangles,inconsistentWindingEdges,closed:boundaryEdges===0&&nonManifoldEdges===0&&degenerateTriangles===0&&inconsistentWindingEdges===0};
+  const closed=boundaryEdges===0&&nonManifoldEdges===0&&degenerateTriangles===0&&inconsistentWindingEdges===0;
+  return {vertexCount,triangleCount:mesh.triangles.length/3,edgeCount:edges.size,boundaryEdges,nonManifoldEdges,degenerateTriangles,inconsistentWindingEdges,signedVolume,orientation:Math.abs(signedVolume)<EPSILON?"indeterminate":signedVolume>0?"outward":"inward",closed};
 }
