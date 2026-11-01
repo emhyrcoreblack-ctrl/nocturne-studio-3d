@@ -58,9 +58,9 @@ private fun NocturneApp() {
                         Text("NOCTURNE", color = Color.White, fontSize = 15.sp)
                         Text("STUDIO 3D  ·  ANDROID", color = Accent, fontSize = 9.sp, letterSpacing = 2.sp)
                     }
-                    SmallAction("↶") { surface?.resetView() }
+                    SmallAction("↶") { surface?.undo() }
                     Spacer(Modifier.width(6.dp))
-                    SmallAction("↷") { }
+                    SmallAction("↷") { surface?.redo() }
                     Spacer(Modifier.width(6.dp))
                     SmallAction("▤") { showInspector = !showInspector }
                 }
