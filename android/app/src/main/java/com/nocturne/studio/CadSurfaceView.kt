@@ -24,6 +24,7 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     fun resetView() { queueEvent { cadRenderer.resetView() } }
     fun setPrimitive(type: Int) { sketchMode=false; queueEvent { cadRenderer.setPrimitive(type) } }
     fun setSketchMode(enabled: Boolean) { sketchMode=enabled }
+    fun setSketchType(type:String) { sketchMode=true; queueEvent { cadRenderer.setSketchType(type) } }
     fun extrudeSketch() { sketchMode=false; queueEvent { cadRenderer.extrudeSketch() } }
     fun setExtrusionHeight(value:Float) { queueEvent { cadRenderer.setExtrusionHeight(value) } }
     fun transform(action:String) { queueEvent { cadRenderer.transform(action) } }
