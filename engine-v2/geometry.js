@@ -185,12 +185,21 @@ export function inspectMeshTopology(mesh) {
     if(tri.some(index=>!Number.isInteger(index)||index<0||index>=vertexCount))
       throw new RangeError("Índice de vértice fuera de rango");
     if(new Set(tri).size!==3) degenerateTriangles++;
+    const point=index=>new Vec3(mesh.vertices[index*3],mesh.vertices[index*3+1],mesh.vertices[index*3+2]);
+    if(new Set(tri).size===3){
+      const area=point(tri[1]).sub(point(tri[0])).cross(point(tri[2]).sub(point(tri[0]))).length();
+      if(!Number.isFinite(area)||area<EPSILON) degenerateTriangles++;
+    }
     for(let j=0;j<3;j++) {
-      const a=tri[j],b=tri[(j+1)%3],key=a<b?a+":"+b:b+":"+a;
-      edges.set(key,(edges.get(key)??0)+1);
+      const a=tri[j],b=tri[(j+1)%3],lo=Math.min(a,b),hi=Math.max(a,b),key=lo+":"+hi;
+      const entry=edges.get(key)??{count:0,forward:0,backward:0};
+      entry.count++;
+      if(a===lo) entry.forward++; else entry.backward++;
+      edges.set(key,entry);
     }
   }
-  const boundaryEdges=[...edges.values()].filter(count=>count===1).length;
-  const nonManifoldEdges=[...edges.values()].filter(count=>count!==2).length;
-  return {vertexCount,triangleCount:mesh.triangles.length/3,edgeCount:edges.size,boundaryEdges,nonManifoldEdges,degenerateTriangles,closed:boundaryEdges===0&&nonManifoldEdges===0&&degenerateTriangles===0};
+  const boundaryEdges=[...edges.values()].filter(edge=>edge.count===1).length;
+  const nonManifoldEdges=[...edges.values()].filter(edge=>edge.count!==2).length;
+  const inconsistentWindingEdges=[...edges.values()].filter(edge=>edge.count===2&&(edge.forward!==1||edge.backward!==1)).length;
+  return {vertexCount,triangleCount:mesh.triangles.length/3,edgeCount:edges.size,boundaryEdges,nonManifoldEdges,degenerateTriangles,inconsistentWindingEdges,closed:boundaryEdges===0&&nonManifoldEdges===0&&degenerateTriangles===0&&inconsistentWindingEdges===0};
 }
