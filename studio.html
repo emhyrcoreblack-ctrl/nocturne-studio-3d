@@ -91,7 +91,7 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 <p class="intro">Esta vista utiliza las funciones reales de extrusión del motor NOCTURNE. Arrastra para orbitar, pellizca o usa la rueda para acercar y cambia los parámetros para regenerar el sólido.</p>
 <div class="workspace">
 <section class="viewport" aria-label="Visor tridimensional interactivo">
-<div class="cad-top"><div class="cad-brand">NOCTURNE <span>STUDIO 3D</span></div><button class="cad-pill">＋ Nuevo</button><button class="cad-pill secondary">↶ Deshacer</button><button class="cad-pill secondary">↷ Rehacer</button></div>
+<div class="cad-top"><div class="cad-brand">NOCTURNE <span>STUDIO 3D</span></div><button class="cad-pill" id="importStl">＋ Importar STL</button><input id="stlFile" type="file" accept=".stl,model/stl" hidden><button class="cad-pill" id="newModel">＋ Nuevo</button><button class="cad-pill secondary">↶ Deshacer</button><button class="cad-pill secondary">↷ Rehacer</button></div>
 <div class="cad-rail"><button class="cad-tool active" title="Seleccionar">↖</button><button class="cad-tool" title="Boceto">✎</button><button class="cad-tool" title="Línea">／</button><button class="cad-tool" title="Rectángulo">▱</button><button class="cad-tool" title="Círculo">◯</button><button class="cad-tool" title="Extruir">⬆</button></div>
 <div class="view-label">ESPACIO DE DISEÑO · MM</div>
 <div class="orientation-widget" aria-label="Cubo de orientación 3D"><div class="orientation-cube" id="orientationCube">
@@ -127,6 +127,8 @@ main>.eyebrow,main>h1,main>.intro,footer{display:none}
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { extrudePolygon, extrudeCircle, inspectMeshTopology } from "./engine-v2/geometry.js";
+import { importSTL } from "./engine-v2/stl.js";
+import { CadDocument } from "./engine-v2/document.js";
 
 const host=document.querySelector(".viewport");
 const scene=new THREE.Scene();scene.background=new THREE.Color("#101a29");
@@ -140,7 +142,25 @@ const grid=new THREE.GridHelper(180,18,"#344c68","#26394f");grid.position.y=-.15
 const axes=new THREE.AxesHelper(24);axes.position.set(-48,.1,-48);scene.add(axes);
 const material=new THREE.MeshStandardMaterial({color:0x8eafd7,metalness:.48,roughness:.28});
 let solid=null,wire=null,wireOn=false;
+const cadDocument=new CadDocument("NOCTURNE");
+let importedMesh=null;
 const $=id=>document.getElementById(id);
+function showMesh(mesh,{fit=false}={}){
+ const report=inspectMeshTopology(mesh),geo=new THREE.BufferGeometry();
+ geo.setAttribute("position",new THREE.Float32BufferAttribute(mesh.vertices,3));geo.setIndex(mesh.triangles);
+ geo.computeVertexNormals();geo.computeBoundingBox();geo.computeBoundingSphere();
+ const next=new THREE.Mesh(geo,material);next.castShadow=true;next.receiveShadow=true;
+ const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x17283d,transparent:true,opacity:.8}));
+ edges.visible=wireOn;next.add(edges);
+ if(solid){scene.remove(solid);solid.geometry.dispose();solid.children[0]?.geometry?.dispose();}
+ solid=next;wire=edges;scene.add(solid);
+ $("vertices").textContent=report.vertexCount;$("triangles").textContent=report.triangleCount;$("edges").textContent=report.boundaryEdges;
+ $("closed").textContent=report.closed?"Cerrado":"Revisar";$("closed").style.color=report.closed?"#8de0bd":"#ff9a8b";
+ if(fit){const box=geo.boundingBox,center=box.getCenter(new THREE.Vector3()),span=Math.max(...box.getSize(new THREE.Vector3()).toArray(),1);
+ controls.target.copy(center);camera.position.copy(center).add(new THREE.Vector3(span*1.8,span*1.45,span*2.1));
+ camera.near=Math.max(.01,span/1000);camera.far=span*100;camera.updateProjectionMatrix();controls.update();}
+ return report;
+}
 function build(){
  try{
   const h=+$("height").value,w=+$("width").value,d=+$("depth").value,r=+$("radius").value;
@@ -148,17 +168,28 @@ function build(){
   $("widthField").hidden=circle;$("depthField").hidden=circle;$("radiusField").hidden=!circle;
   $("widthOut").textContent=w+" mm";$("depthOut").textContent=d+" mm";$("radiusOut").textContent=r+" mm";$("heightOut").textContent=h+" mm";
   const mesh=circle?extrudeCircle({x:0,y:0},r,h):extrudePolygon([{x:-w/2,y:-d/2},{x:w/2,y:-d/2},{x:w/2,y:d/2},{x:-w/2,y:d/2}],h);
-  const report=inspectMeshTopology(mesh);
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(mesh.vertices,3));geo.setIndex(mesh.triangles);geo.computeVertexNormals();geo.computeBoundingSphere();
-  const next=new THREE.Mesh(geo,material);next.castShadow=true;next.receiveShadow=true;
-  const nextWire=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x17283d,transparent:true,opacity:.8}));nextWire.visible=wireOn;next.add(nextWire);
-  if(solid){scene.remove(solid);solid.geometry.dispose();solid.children[0]?.geometry?.dispose();}
-  solid=next;wire=nextWire;scene.add(solid);
-  $("vertices").textContent=report.vertexCount;$("triangles").textContent=report.triangleCount;$("edges").textContent=report.boundaryEdges;$("closed").textContent=report.closed?"Cerrado":"Revisar";
-  $("closed").style.color=report.closed?"#8de0bd":"#ff9a8b";$("status").textContent=report.closed?"● Malla generada · topología cerrada":"● Atención: malla con incidencias";
+  if(importedMesh) importedMesh=null;
+  const report=showMesh(mesh);
+  $("status").textContent=report.closed?"● Malla generada · topología cerrada":"● Atención: malla con incidencias";
  }catch(e){$("status").textContent="Error geométrico: "+e.message;}
 }
 ["shape","width","depth","radius","height"].forEach(id=>$(id).addEventListener("input",build));
+$("importStl").addEventListener("click",()=>$("stlFile").click());
+$("stlFile").addEventListener("change",async event=>{
+ const file=event.target.files?.[0];if(!file)return;
+ $("status").textContent="● Leyendo "+file.name+"…";
+ try{
+  const mesh=importSTL(await file.arrayBuffer());cadDocument.addImportedMesh(mesh,file.name);importedMesh=mesh;
+  const report=showMesh(mesh,{fit:true});
+  $("status").textContent="● STL "+mesh.metadata.sourceFormat.toUpperCase()+" importado · "+report.triangleCount+" triángulos · "+(report.closed?"malla cerrada":"malla abierta o con incidencias");
+  ["shape","width","depth","radius","height"].forEach(id=>$(id).disabled=true);
+ }catch(error){$("status").textContent="Error al importar STL: "+error.message;}
+ finally{event.target.value="";}
+});
+$("newModel").addEventListener("click",()=>{
+ importedMesh=null;["shape","width","depth","radius","height"].forEach(id=>$(id).disabled=false);
+ build();setView("iso");$("status").textContent="● Nuevo modelo paramétrico";
+});
 $("wire").addEventListener("click",()=>{wireOn=!wireOn;if(wire)wire.visible=wireOn;$("wire").textContent=wireOn?"Ocultar aristas":"Ver aristas";});
 $("reset").addEventListener("click",()=>{camera.position.set(95,82,115);controls.target.set(0,12,0);controls.update();});
 
