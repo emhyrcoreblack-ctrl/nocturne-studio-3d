@@ -16,6 +16,7 @@ class CadRenderer : GLSurfaceView.Renderer {
     @Volatile private var pitch = 0.48f
     @Volatile private var distance = 5.2f
     @Volatile private var primitive = 0
+    @Volatile private var objectSelected = false
     private var program = 0
     private var position = 0
     private var color = 0
@@ -89,7 +90,7 @@ class CadRenderer : GLSurfaceView.Renderer {
             val vertices = if (sketchType == "Círculo") circleExtrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight) else extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight)
             val mesh = buffer(vertices)
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
-        } else if (primitive==0) draw(cube,cubeCount,GLES20.GL_TRIANGLES)
+        } else if (primitive==0) { if (objectSelected) { val selected=buffer(cubeVertices(true)); draw(selected,selected.limit()/7,GLES20.GL_TRIANGLES) } else draw(cube,cubeCount,GLES20.GL_TRIANGLES) }
         else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
         if (sketchStart != null && sketchEnd != null && !extruded) {
             val outline = buffer(when(sketchType) { "Círculo" -> circleLines(sketchStart!!, sketchEnd!!); "Línea" -> lineVertices(sketchStart!!, sketchEnd!!); else -> rectangleLines(sketchStart!!, sketchEnd!!) })
@@ -107,6 +108,25 @@ class CadRenderer : GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(position); GLES20.glDisableVertexAttribArray(color)
     }
 
+    fun selectAt(x:Float,y:Float):Boolean {
+        val inv=FloatArray(16)
+        if (!Matrix.invertM(inv,0,vp,0)) return objectSelected
+        val nx=2f*x/viewportWidth-1f; val ny=1f-2f*y/viewportHeight
+        val near=FloatArray(4); val far=FloatArray(4)
+        Matrix.multiplyMV(near,0,inv,0,floatArrayOf(nx,ny,-1f,1f),0)
+        Matrix.multiplyMV(far,0,inv,0,floatArrayOf(nx,ny,1f,1f),0)
+        if (near[3]==0f || far[3]==0f) return objectSelected
+        for(i in 0..2) { near[i]/=near[3]; far[i]/=far[3] }
+        val dx=far[0]-near[0]; val dy=far[1]-near[1]; val dz=far[2]-near[2]
+        val ox=near[0]-objectX; val oy=near[1]; val oz=near[2]-objectZ
+        val radius=1.75f*objectScale
+        val aa=dx*dx+dy*dy+dz*dz
+        val bb=2f*(ox*dx+oy*dy+oz*dz)
+        val cc=ox*ox+oy*oy+oz*oz-radius*radius
+        val hit=bb*bb-4f*aa*cc >= 0f
+        objectSelected=hit
+        return hit
+    }
     fun orbit(dx:Float,dy:Float) { yaw-=dx*.008f; pitch=(pitch+dy*.008f).coerceIn(-1.35f,1.35f) }
     fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,18f) }
     fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; primitive=0 }
@@ -204,7 +224,7 @@ class CadRenderer : GLSurfaceView.Renderer {
         }
         return out.toFloatArray()
     }
-    private fun cubeVertices():FloatArray {
+    private fun cubeVertices(selected:Boolean=false):FloatArray {
         val out=ArrayList<Float>()
         val faces=listOf(
             Triple(floatArrayOf(0f,0f,1f,.95f), arrayOf(floatArrayOf(-1f,-1f,1f),floatArrayOf(1f,-1f,1f),floatArrayOf(1f,1f,1f),floatArrayOf(-1f,1f,1f)),0),
@@ -214,7 +234,7 @@ class CadRenderer : GLSurfaceView.Renderer {
             Triple(floatArrayOf(.35f,.57f,.86f,.95f), arrayOf(floatArrayOf(1f,-1f,1f),floatArrayOf(1f,-1f,-1f),floatArrayOf(1f,1f,-1f),floatArrayOf(1f,1f,1f)),0),
             Triple(floatArrayOf(.22f,.42f,.70f,.95f), arrayOf(floatArrayOf(-1f,-1f,-1f),floatArrayOf(-1f,-1f,1f),floatArrayOf(-1f,1f,1f),floatArrayOf(-1f,1f,-1f)),0)
         )
-        for((c,p,_) in faces) { val ids=intArrayOf(0,1,2,0,2,3); for(i in ids) add(out,p[i][0],p[i][1],p[i][2],c) }
+        for((base,p,_) in faces) { val c=if(selected) floatArrayOf((base[0]+.25f).coerceAtMost(1f),(base[1]+.22f).coerceAtMost(1f),(base[2]+.08f).coerceAtMost(1f),1f) else base; val ids=intArrayOf(0,1,2,0,2,3); for(i in ids) add(out,p[i][0],p[i][1],p[i][2],c) }
         return out.toFloatArray()
     }
     private fun cylinder():FloatBuffer {
