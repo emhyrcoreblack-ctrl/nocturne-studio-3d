@@ -117,9 +117,9 @@ private fun NocturneApp() {
                                 panel=it
                                 surface?.transform(it)
                             } }
-                            else -> listOf("Ajustar vista").forEach { ToolChip(it, panel==it) {
+                            else -> listOf("Isométrica", "Superior", "Frontal", "Posterior", "Derecha", "Izquierda", "Ajustar vista").forEach { ToolChip(it, panel==it) {
                                 panel=it
-                                if (it=="Ajustar vista") surface?.resetView()
+                                if (it=="Ajustar vista") surface?.resetView() else surface?.setView(it)
                             } }
                         }
                     }
