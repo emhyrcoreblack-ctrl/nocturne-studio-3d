@@ -17,6 +17,7 @@ class CadRenderer : GLSurfaceView.Renderer {
     @Volatile private var distance = 5.2f
     @Volatile private var primitive = 0
     @Volatile private var objectSelected = false
+    @Volatile private var selectedFace = -1
     private var program = 0
     private var position = 0
     private var color = 0
@@ -90,7 +91,7 @@ class CadRenderer : GLSurfaceView.Renderer {
             val vertices = if (sketchType == "Círculo") circleExtrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight) else extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight)
             val mesh = buffer(vertices)
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
-        } else if (primitive==0) { if (objectSelected) { val selected=buffer(cubeVertices(true)); draw(selected,selected.limit()/7,GLES20.GL_TRIANGLES) } else draw(cube,cubeCount,GLES20.GL_TRIANGLES) }
+        } else if (primitive==0) { if (objectSelected) { val selected=buffer(cubeVertices(selectedFace)); draw(selected,selected.limit()/7,GLES20.GL_TRIANGLES) } else draw(cube,cubeCount,GLES20.GL_TRIANGLES) }
         else { val mesh = cylinder(); draw(mesh,mesh.limit()/7,GLES20.GL_TRIANGLES) }
         if (sketchStart != null && sketchEnd != null && !extruded) {
             val outline = buffer(when(sketchType) { "Círculo" -> circleLines(sketchStart!!, sketchEnd!!); "Línea" -> lineVertices(sketchStart!!, sketchEnd!!); else -> rectangleLines(sketchStart!!, sketchEnd!!) })
@@ -108,24 +109,45 @@ class CadRenderer : GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(position); GLES20.glDisableVertexAttribArray(color)
     }
 
-    fun selectAt(x:Float,y:Float):Boolean {
+    fun selectAt(x:Float,y:Float):Int {
         val inv=FloatArray(16)
-        if (!Matrix.invertM(inv,0,vp,0)) return objectSelected
+        if (!Matrix.invertM(inv,0,vp,0)) return selectedFace
         val nx=2f*x/viewportWidth-1f; val ny=1f-2f*y/viewportHeight
         val near=FloatArray(4); val far=FloatArray(4)
         Matrix.multiplyMV(near,0,inv,0,floatArrayOf(nx,ny,-1f,1f),0)
         Matrix.multiplyMV(far,0,inv,0,floatArrayOf(nx,ny,1f,1f),0)
-        if (near[3]==0f || far[3]==0f) return objectSelected
+        if (near[3]==0f || far[3]==0f) return selectedFace
         for(i in 0..2) { near[i]/=near[3]; far[i]/=far[3] }
+        // Transform the picking ray into the object's local coordinates.
         val dx=far[0]-near[0]; val dy=far[1]-near[1]; val dz=far[2]-near[2]
-        val ox=near[0]-objectX; val oy=near[1]; val oz=near[2]-objectZ
-        val radius=1.75f*objectScale
-        val aa=dx*dx+dy*dy+dz*dz
-        val bb=2f*(ox*dx+oy*dy+oz*dz)
-        val cc=ox*ox+oy*oy+oz*oz-radius*radius
-        val hit=bb*bb-4f*aa*cc >= 0f
-        objectSelected=hit
-        return hit
+        val invYaw= -objectYaw*Math.PI.toFloat()/180f
+        val c=cos(invYaw); val s=sin(invYaw)
+        fun local(px:Float,py:Float,pz:Float):FloatArray {
+            val x=px-objectX; val z=pz-objectZ
+            return floatArrayOf((x*c-z*s)/objectScale,py/objectScale,(x*s+z*c)/objectScale)
+        }
+        val o=local(near[0],near[1],near[2])
+        val d0=local(near[0]+dx,near[1]+dy,near[2]+dz)
+        val d=floatArrayOf(d0[0]-o[0],d0[1]-o[1],d0[2]-o[2])
+        var tMin=0f; var tMax=Float.POSITIVE_INFINITY
+        var hitFace=-1
+        for(axis in 0..2) {
+            val origin=o[axis]; val dir=d[axis]
+            if (kotlin.math.abs(dir)<1e-6f) {
+                if (origin < -1f || origin > 1f) { objectSelected=false; selectedFace=-1; return -1 }
+            } else {
+                var t1=(-1f-origin)/dir; var t2=(1f-origin)/dir
+                var face1=when(axis) { 0 -> 5; 1 -> 3; else -> 1 }
+                var face2=when(axis) { 0 -> 4; 1 -> 2; else -> 0 }
+                if(t1>t2) { val q=t1; t1=t2; t2=q; val f=face1; face1=face2; face2=f }
+                if(t1>tMin) { tMin=t1; hitFace=face1 }
+                tMax=minOf(tMax,t2)
+                if(tMin>tMax) { objectSelected=false; selectedFace=-1; return -1 }
+            }
+        }
+        objectSelected=tMax>=0f
+        selectedFace=if(objectSelected) hitFace else -1
+        return selectedFace
     }
     fun orbit(dx:Float,dy:Float) { yaw-=dx*.008f; pitch=(pitch+dy*.008f).coerceIn(-1.35f,1.35f) }
     fun zoom(factor:Float) { distance=(distance*factor).coerceIn(2.0f,18f) }
@@ -224,7 +246,7 @@ class CadRenderer : GLSurfaceView.Renderer {
         }
         return out.toFloatArray()
     }
-    private fun cubeVertices(selected:Boolean=false):FloatArray {
+    private fun cubeVertices(selectedFace:Int=-1):FloatArray {
         val out=ArrayList<Float>()
         val faces=listOf(
             Triple(floatArrayOf(0f,0f,1f,.95f), arrayOf(floatArrayOf(-1f,-1f,1f),floatArrayOf(1f,-1f,1f),floatArrayOf(1f,1f,1f),floatArrayOf(-1f,1f,1f)),0),
@@ -234,7 +256,7 @@ class CadRenderer : GLSurfaceView.Renderer {
             Triple(floatArrayOf(.35f,.57f,.86f,.95f), arrayOf(floatArrayOf(1f,-1f,1f),floatArrayOf(1f,-1f,-1f),floatArrayOf(1f,1f,-1f),floatArrayOf(1f,1f,1f)),0),
             Triple(floatArrayOf(.22f,.42f,.70f,.95f), arrayOf(floatArrayOf(-1f,-1f,-1f),floatArrayOf(-1f,-1f,1f),floatArrayOf(-1f,1f,1f),floatArrayOf(-1f,1f,-1f)),0)
         )
-        for((base,p,_) in faces) { val c=if(selected) floatArrayOf((base[0]+.25f).coerceAtMost(1f),(base[1]+.22f).coerceAtMost(1f),(base[2]+.08f).coerceAtMost(1f),1f) else base; val ids=intArrayOf(0,1,2,0,2,3); for(i in ids) add(out,p[i][0],p[i][1],p[i][2],c) }
+        for((faceIndex,face) in faces.withIndex()) { val base=face.first; val p=face.second; val c=if(faceIndex==selectedFace) floatArrayOf(1f,.62f,.20f,1f) else base; val ids=intArrayOf(0,1,2,0,2,3); for(i in ids) add(out,p[i][0],p[i][1],p[i][2],c) }
         return out.toFloatArray()
     }
     private fun cylinder():FloatBuffer {
