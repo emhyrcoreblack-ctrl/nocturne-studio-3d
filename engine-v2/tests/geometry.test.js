@@ -35,3 +35,26 @@ test("rechaza resolución y profundidad circulares inválidas",()=>{
  assert.throws(()=>extrudeCircle({x:0,y:0},2,0));
  assert.throws(()=>extrudeCircle({x:0,y:0},2,4,Plane.XY(),4));
 });
+
+
+test("las extrusiones poligonales son cerradas en ambos sentidos de dibujo",()=>{
+ const ccw=[{x:0,y:0},{x:8,y:0},{x:8,y:5},{x:0,y:5}];
+ const cw=[...ccw].reverse();
+ for(const points of [ccw,cw]) {
+  const report=inspectMeshTopology(extrudePolygon(points,3));
+  assert.equal(report.closed,true);
+  assert.equal(report.boundaryEdges,0);
+  assert.equal(report.nonManifoldEdges,0);
+ }
+});
+test("la extrusión circular produce una malla cerrada",()=>{
+ const report=inspectMeshTopology(extrudeCircle({x:2,y:-1},4,7,Plane.XY(),24));
+ assert.equal(report.closed,true);
+ assert.equal(report.triangleCount,48);
+});
+test("el inspector detecta una malla con borde abierto",()=>{
+ const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0],triangles:[0,1,2]};
+ const report=inspectMeshTopology(mesh);
+ assert.equal(report.closed,false);
+ assert.equal(report.boundaryEdges,3);
+});
