@@ -19,3 +19,23 @@ test("rechaza tolerancia inválida",()=>{
  const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0],triangles:[0,1,2]};
  assert.throws(()=>repairTriangleMesh(mesh,{tolerance:0}),/positiva/);
 });
+
+test("une vértices próximos aunque estén en celdas espaciales vecinas",()=>{
+ const mesh={kind:"triangle-mesh",vertices:[0.99,0,0,2,0,0,0,1,0,1.01,0,0],triangles:[0,1,2]};
+ const r=repairTriangleMesh(mesh,{tolerance:0.05});
+ assert.equal(r.report.weldedVertices,1);
+ assert.equal(r.report.triangleCount,0);
+ assert.equal(r.report.removedDegenerate,1);
+});
+test("informa por separado las caras duplicadas con orientación opuesta",()=>{
+ const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0],triangles:[0,1,2,0,2,1]};
+ const r=repairTriangleMesh(mesh);
+ assert.equal(r.report.opposedDuplicates,1);
+ assert.equal(r.report.removedDuplicate,0);
+});
+test("compacta vértices sin uso tras eliminar caras degeneradas",()=>{
+ const mesh={kind:"triangle-mesh",vertices:[0,0,0,1,0,0,0,1,0,9,9,9],triangles:[0,1,2]};
+ const r=repairTriangleMesh(mesh);
+ assert.equal(r.mesh.vertices.length/3,3);
+ assert.equal(r.report.compactedVertices,1);
+});
