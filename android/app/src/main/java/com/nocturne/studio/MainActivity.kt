@@ -109,11 +109,11 @@ private fun NocturneApp() {
                                 panel=it
                                 surface?.setSketchType(it)
                             } }
-                            "Sólido" -> listOf("Extruir", "Revolución", "Cortar", "Unir").forEach { ToolChip(it, panel==it) {
+                            "Sólido" -> listOf("Extruir").forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 if (it=="Extruir") surface?.extrudeSketch()
                             } }
-                            "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Duplicar", "Restablecer").forEach { ToolChip(it, panel==it) {
+                            "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Restablecer").forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 surface?.transform(it)
                             } }
@@ -127,7 +127,7 @@ private fun NocturneApp() {
                     }
                 }
             }
-            Text("Arrastra para orbitar · Pellizca para zoom", Modifier.align(Alignment.TopCenter).padding(top=74.dp)
+            Text("Toca el cubo para seleccionar una cara · Arrastra para orbitar · Pellizca para zoom", Modifier.align(Alignment.TopCenter).padding(top=74.dp)
                 .background(Color(0x990B1018), RoundedCornerShape(20.dp)).padding(horizontal=12.dp, vertical=6.dp),
                 color=Muted, fontSize=10.sp)
         }
