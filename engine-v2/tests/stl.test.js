@@ -17,7 +17,8 @@ function binarySTL() {
  let o=84;
  for(const n of [0,0,1, 0,0,0, 1,0,0, 0,1,0]) {v.setFloat32(o,n,true);o+=4;}
  v.setUint16(o,0,true);
- return b;
+ if(b.byteLength!==84+v.getUint32(80,true)*50) throw new Error("Fixture binario mal formado");
+ return new Uint8Array(b);
 }
 test("importa STL ASCII y conserva unidades como desconocidas",()=>{
  const m=importSTL(ascii);
