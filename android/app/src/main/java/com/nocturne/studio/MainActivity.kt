@@ -109,11 +109,15 @@ private fun NocturneApp() {
                                 panel=it
                                 surface?.setSketchType(it)
                             } }
-                            "Sólido" -> listOf("Extruir").forEach { ToolChip(it, panel==it) {
+                            "Sólido" -> listOf("Caja", "Cilindro", "Extruir").forEach { ToolChip(it, panel==it) {
                                 panel=it
-                                if (it=="Extruir") surface?.extrudeSketch()
+                                when (it) {
+                                    "Caja" -> surface?.setPrimitive(0)
+                                    "Cilindro" -> surface?.setPrimitive(1)
+                                    "Extruir" -> surface?.extrudeSketch()
+                                }
                             } }
-                            "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Restablecer").forEach { ToolChip(it, panel==it) {
+                            "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Duplicar", "Restablecer").forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 surface?.transform(it)
                             } }
