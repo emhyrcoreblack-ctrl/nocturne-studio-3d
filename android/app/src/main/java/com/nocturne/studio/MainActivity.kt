@@ -137,7 +137,8 @@ private fun NocturneApp() {
                                     "Caja" -> surface?.setPrimitive(0)
                                     "Cilindro" -> surface?.setPrimitive(1)
                                     "Extruir" -> surface?.extrudeSketch()
-                                    "Importar STL" -> stlPicker.launch(arrayOf("model/stl", "application/sla", "application/octet-stream"))\n                                    "Exportar STL" -> stlSaver.launch("nocturne-modelo.stl")
+                                    "Importar STL" -> stlPicker.launch(arrayOf("model/stl", "application/sla", "application/octet-stream"))
+                                    "Exportar STL" -> stlSaver.launch("nocturne-modelo.stl")
                                 }
                             } }
                             "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Duplicar", "Restablecer").forEach { ToolChip(it, panel==it) {
