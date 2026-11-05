@@ -53,6 +53,15 @@ private fun NocturneApp() {
             } catch (_: Exception) { Toast.makeText(context, "Error al importar STL", Toast.LENGTH_LONG).show() }
         }
     }
+    val stlSaver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("model/stl")) { uri ->
+        if (uri != null) surface?.exportStl { bytes ->
+            try {
+                if (bytes == null) Toast.makeText(context, "Importa primero un modelo STL", Toast.LENGTH_LONG).show()
+                else context.contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
+                if (bytes != null) Toast.makeText(context, "STL exportado", Toast.LENGTH_LONG).show()
+            } catch (_: Exception) { Toast.makeText(context, "No se pudo guardar el STL", Toast.LENGTH_LONG).show() }
+        }
+    }
 
     MaterialTheme(colorScheme = darkColorScheme(
         background = Ink, surface = Panel, primary = Accent,
@@ -122,13 +131,13 @@ private fun NocturneApp() {
                                 panel=it
                                 surface?.setSketchType(it)
                             } }
-                            "Sólido" -> (listOf("Caja", "Cilindro", "Extruir", "Importar STL")).forEach { ToolChip(it, panel==it) {
+                            "Sólido" -> (listOf("Caja", "Cilindro", "Extruir", "Importar STL", "Exportar STL")).forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 when (it) {
                                     "Caja" -> surface?.setPrimitive(0)
                                     "Cilindro" -> surface?.setPrimitive(1)
                                     "Extruir" -> surface?.extrudeSketch()
-                                    "Importar STL" -> stlPicker.launch(arrayOf("model/stl", "application/sla", "application/octet-stream"))
+                                    "Importar STL" -> stlPicker.launch(arrayOf("model/stl", "application/sla", "application/octet-stream"))\n                                    "Exportar STL" -> stlSaver.launch("nocturne-modelo.stl")
                                 }
                             } }
                             "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Duplicar", "Restablecer").forEach { ToolChip(it, panel==it) {
