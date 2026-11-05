@@ -3,6 +3,9 @@ package com.nocturne.studio
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +43,16 @@ private fun NocturneApp() {
     var surface by remember { mutableStateOf<CadSurfaceView?>(null) }
     var extrusionHeight by remember { mutableFloatStateOf(1.0f) }
     var selectedFace by remember { mutableIntStateOf(-1) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val stlPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            try {
+                val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                if (bytes != null) surface?.importStl(bytes) { ok -> Toast.makeText(context, if (ok) "STL importado" else "Archivo STL no válido", Toast.LENGTH_LONG).show() }
+                else Toast.makeText(context, "No se pudo leer el archivo", Toast.LENGTH_LONG).show()
+            } catch (_: Exception) { Toast.makeText(context, "Error al importar STL", Toast.LENGTH_LONG).show() }
+        }
+    }
 
     MaterialTheme(colorScheme = darkColorScheme(
         background = Ink, surface = Panel, primary = Accent,
@@ -109,12 +122,13 @@ private fun NocturneApp() {
                                 panel=it
                                 surface?.setSketchType(it)
                             } }
-                            "Sólido" -> listOf("Caja", "Cilindro", "Extruir").forEach { ToolChip(it, panel==it) {
+                            "Sólido" -> (listOf("Caja", "Cilindro", "Extruir", "Importar STL")).forEach { ToolChip(it, panel==it) {
                                 panel=it
                                 when (it) {
                                     "Caja" -> surface?.setPrimitive(0)
                                     "Cilindro" -> surface?.setPrimitive(1)
                                     "Extruir" -> surface?.extrudeSketch()
+                                    "Importar STL" -> stlPicker.launch(arrayOf("model/stl", "application/sla", "application/octet-stream"))
                                 }
                             } }
                             "Transformar" -> listOf("Mover X", "Mover Z", "Rotar", "Escalar +", "Escalar -", "Duplicar", "Restablecer").forEach { ToolChip(it, panel==it) {
