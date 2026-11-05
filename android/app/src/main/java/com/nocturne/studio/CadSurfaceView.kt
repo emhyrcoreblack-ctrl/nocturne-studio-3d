@@ -36,7 +36,8 @@ class CadSurfaceView(context: Context) : GLSurfaceView(context) {
     fun extrudeSketch() { sketchMode=false; queueEvent { cadRenderer.extrudeSketch() } }
     fun setExtrusionHeight(value:Float) { queueEvent { cadRenderer.setExtrusionHeight(value) } }
     fun transform(action:String) { queueEvent { cadRenderer.transform(action) } }
-    fun importStl(bytes:ByteArray, onResult:(Boolean)->Unit) { queueEvent { val ok=cadRenderer.importStl(bytes); post { onResult(ok) } } }\n    fun exportStl(onResult:(ByteArray?)->Unit) { queueEvent { val bytes=cadRenderer.exportStlBytes(); post { onResult(bytes) } } }
+    fun importStl(bytes:ByteArray, onResult:(Boolean)->Unit) { queueEvent { val ok=cadRenderer.importStl(bytes); post { onResult(ok) } } }
+    fun exportStl(onResult:(ByteArray?)->Unit) { queueEvent { val bytes=cadRenderer.exportStlBytes(); post { onResult(bytes) } } }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
