@@ -207,6 +207,39 @@ class CadRenderer : GLSurfaceView.Renderer {
         } catch (_: Exception) { return false }
     }
 
+    fun exportStlBytes(): ByteArray? {
+        val mesh = importedMesh ?: return null
+        if (importedVertexCount < 3) return null
+        val out = java.nio.ByteBuffer.allocate(84 + (importedVertexCount / 3) * 50).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        val header = "NOCTURNE STUDIO 3D STL".toByteArray(Charsets.US_ASCII)
+        out.put(header.copyOf(80))
+        out.putInt(importedVertexCount / 3)
+        val angle = objectYaw * Math.PI.toFloat() / 180f
+        val c = cos(angle); val sn = sin(angle)
+        val vertices = FloatArray(importedVertexCount * 3)
+        mesh.position(0)
+        for (i in 0 until importedVertexCount) {
+            val x = mesh.get(i * 7); val y = mesh.get(i * 7 + 1); val z = mesh.get(i * 7 + 2)
+            vertices[i*3] = (x*c + z*sn) * objectScale + objectX
+            vertices[i*3+1] = y * objectScale
+            vertices[i*3+2] = (-x*sn + z*c) * objectScale + objectZ
+        }
+        for (i in 0 until importedVertexCount step 3) {
+            val ax=vertices[i*3]; val ay=vertices[i*3+1]; val az=vertices[i*3+2]
+            val bx=vertices[(i+1)*3]; val by=vertices[(i+1)*3+1]; val bz=vertices[(i+1)*3+2]
+            val cx=vertices[(i+2)*3]; val cy=vertices[(i+2)*3+1]; val cz=vertices[(i+2)*3+2]
+            val ux=bx-ax; val uy=by-ay; val uz=bz-az
+            val vx=cx-ax; val vy=cy-ay; val vz=cz-az
+            var nx=uy*vz-uz*vy; var ny=uz*vx-ux*vz; var nz=ux*vy-uy*vx
+            val length=kotlin.math.sqrt(nx*nx+ny*ny+nz*nz).coerceAtLeast(1e-12f)
+            nx/=length; ny/=length; nz/=length
+            out.putFloat(nx); out.putFloat(ny); out.putFloat(nz)
+            for (j in 0..2) { out.putFloat(vertices[(i+j)*3]); out.putFloat(vertices[(i+j)*3+1]); out.putFloat(vertices[(i+j)*3+2]) }
+            out.putShort(0)
+        }
+        return out.array()
+    }
+
     fun setPrimitive(type:Int) { rememberChange(); primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null; objectSelected=false; selectedFace=-1 }
     fun setSketchType(type:String) { rememberChange(); sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
     fun sketchTouch(x:Float,y:Float,down:Boolean,finish:Boolean) {
