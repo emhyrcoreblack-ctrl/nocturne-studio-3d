@@ -31,6 +31,8 @@ class CadRenderer : GLSurfaceView.Renderer {
     private lateinit var grid: FloatBuffer
     private var cubeCount = 0
     private var gridCount = 0
+    private var importedMesh: FloatBuffer? = null
+    private var importedVertexCount = 0
     private var viewportWidth = 1
     private var viewportHeight = 1
     private var sketchStart: FloatArray? = null
@@ -87,7 +89,8 @@ class CadRenderer : GLSurfaceView.Renderer {
         GLES20.glUseProgram(program)
         GLES20.glUniformMatrix4fv(mvpHandle,1,false,mvp,0)
         draw(grid,gridCount,GLES20.GL_LINES)
-        if (extruded && sketchStart != null && sketchEnd != null && sketchType != "Línea") {
+        if (primitive == 3 && importedMesh != null) { draw(importedMesh!!, importedVertexCount, GLES20.GL_TRIANGLES) }
+        else if (extruded && sketchStart != null && sketchEnd != null && sketchType != "Línea") {
             val vertices = if (sketchType == "Círculo") circleExtrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight) else extrusionVertices(sketchStart!!, sketchEnd!!, extrusionHeight)
             val mesh = buffer(vertices)
             GLES20.glDisable(GLES20.GL_CULL_FACE); draw(mesh, mesh.limit()/7, GLES20.GL_TRIANGLES); GLES20.glEnable(GLES20.GL_CULL_FACE)
@@ -163,6 +166,47 @@ class CadRenderer : GLSurfaceView.Renderer {
         }
     }
     fun resetView() { yaw=.72f; pitch=.48f; distance=5.2f; objectSelected=false; selectedFace=-1 }
+    fun importStl(bytes: ByteArray): Boolean {
+        val values = ArrayList<Float>()
+        fun addVertex(x:Float,y:Float,z:Float) {
+            values.add(x); values.add(y); values.add(z)
+            values.add(.35f); values.add(.68f); values.add(.92f); values.add(1f)
+        }
+        try {
+            val binaryCount = if (bytes.size >= 84) java.nio.ByteBuffer.wrap(bytes,80,4).order(java.nio.ByteOrder.LITTLE_ENDIAN).int else -1
+            val isBinary = binaryCount >= 0 && 84L + binaryCount.toLong()*50L <= bytes.size.toLong()
+            if (isBinary) {
+                val bb=java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN); bb.position(84)
+                repeat(binaryCount) {
+                    bb.position(bb.position()+12)
+                    repeat(3) { addVertex(bb.float,bb.float,bb.float) }
+                    bb.position(bb.position()+2)
+                }
+            } else {
+                val text=bytes.toString(Charsets.UTF_8)
+                val regex=Regex("""vertex\\s+([-+0-9.eE]+)\\s+([-+0-9.eE]+)\\s+([-+0-9.eE]+)""")
+                for (m in regex.findAll(text)) addVertex(m.groupValues[1].toFloat(),m.groupValues[2].toFloat(),m.groupValues[3].toFloat())
+            }
+            if (values.isEmpty() || values.size % 21 != 0) return false
+            var minX=Float.POSITIVE_INFINITY; var minY=minX; var minZ=minX
+            var maxX=Float.NEGATIVE_INFINITY; var maxY=maxX; var maxZ=maxX
+            for(i in values.indices step 7) {
+                minX=minOf(minX,values[i]); maxX=maxOf(maxX,values[i])
+                minY=minOf(minY,values[i+1]); maxY=maxOf(maxY,values[i+1])
+                minZ=minOf(minZ,values[i+2]); maxZ=maxOf(maxZ,values[i+2])
+            }
+            val cx=(minX+maxX)/2f; val cy=(minY+maxY)/2f; val cz=(minZ+maxZ)/2f
+            val scale=2f/maxOf(maxX-minX,maxY-minY,maxZ-minZ,.0001f)
+            for(i in values.indices step 7) {
+                values[i]=(values[i]-cx)*scale; values[i+1]=(values[i+1]-cy)*scale; values[i+2]=(values[i+2]-cz)*scale
+            }
+            importedMesh=buffer(values.toFloatArray()); importedVertexCount=values.size/7
+            primitive=3; extruded=false; objectX=0f; objectZ=0f; objectYaw=0f; objectScale=1f
+            objectSelected=false; selectedFace=-1
+            return true
+        } catch (_: Exception) { return false }
+    }
+
     fun setPrimitive(type:Int) { rememberChange(); primitive=type.coerceIn(0,1); extruded=false; sketchStart=null; sketchEnd=null; objectSelected=false; selectedFace=-1 }
     fun setSketchType(type:String) { rememberChange(); sketchType=type; sketchStart=null; sketchEnd=null; extruded=false }
     fun sketchTouch(x:Float,y:Float,down:Boolean,finish:Boolean) {
