@@ -27,7 +27,7 @@
 #workspace{display:none;position:fixed;inset:0;overflow:hidden;background:#131a25;touch-action:none}#documentHeader{height:66px;position:absolute;inset:0 0 auto 0;z-index:6;background:#1953a3;color:white;display:flex;align-items:center;padding:0 14px;gap:13px;box-shadow:0 2px 8px #0003}#backProjects{position:static;flex:none;width:42px;height:42px;background:transparent;border:0;color:white;font-size:25px;padding:0}#backProjects:hover,#documentHeader button:hover{background:#ffffff20}.document-heading{min-width:0;display:flex;flex-direction:column;line-height:1.2}.document-heading div{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(56vw,440px)}.document-heading small{font-size:12px;color:#d6e4f8;margin-top:4px}.header-actions{margin-left:auto;display:flex;gap:8px}.header-actions button{border:0;background:transparent;color:white;width:38px;height:42px;padding:0;font-size:25px;border-radius:50%}#helpButton{font-weight:800;border:2px solid #ffffffb8;width:30px;height:30px;line-height:24px;font-size:19px}#moreMenu{display:none;position:absolute;right:12px;top:58px;min-width:185px;background:#1d2939;border:1px solid #455a75;border-radius:10px;padding:6px;box-shadow:0 12px 32px #0008}#moreMenu.show{display:grid}#moreMenu button{text-align:left;background:transparent;border:0;border-radius:6px;padding:11px}#editorToolbar{position:absolute;z-index:5;top:66px;left:0;right:0;height:52px;display:flex;align-items:center;gap:5px;padding:0 12px;background:#e9edf2;color:#253448;border-bottom:1px solid #b8c4d2;box-shadow:0 2px 6px #0002}#editorToolbar button{color:#27384c;background:transparent;border:0;border-radius:7px;min-width:39px;height:40px;padding:0 10px;font-size:23px}#editorToolbar button:disabled{opacity:.35;cursor:default}#editorToolbar button{font-size:20px}#editorToolbar button.tool-active{color:#1455a5;background:#d4e4f8}#drawToolsPanel{display:none;position:absolute;top:46px;left:88px;z-index:12;min-width:190px;padding:7px;background:#f7f9fc;border:1px solid #bdc9d7;border-radius:11px;box-shadow:0 12px 28px #14223835;grid-template-columns:1fr;gap:3px}#drawToolsPanel.open{display:grid}#drawToolsPanel button{display:flex;align-items:center;gap:12px;justify-content:flex-start;width:100%;height:42px;padding:0 12px;font-size:19px}#drawToolsPanel button small{font-size:12px;font-weight:600}#drawMenuButton{font-size:23px!important}#drawMenuButton.menu-open{background:#d4e4f8;color:#1455a5}@media(max-width:640px){#drawToolsPanel{left:48px;top:43px}}#editorToolbar button.tool-active{color:#1455a5;background:#d4e4f8}#editorToolbar .tool-separator{height:30px;width:1px;background:#c2ccd7;margin:0 5px}.save-state{font-size:11px;color:#647386;margin-left:auto;white-space:nowrap}#viewport{position:absolute;inset:118px 0 0;touch-action:none}#viewport canvas{display:block;width:100%;height:100%;outline:none}#helpPanel{display:none;position:absolute;z-index:8;right:14px;top:75px;width:min(290px,calc(100% - 28px));background:#1c2939;border:1px solid #526985;border-radius:12px;padding:15px;box-shadow:0 12px 32px #0008}#helpPanel.show{display:block}#helpPanel p{font-size:12px;color:#b6c4d7}#helpPanel button{padding:7px 12px} .emptythumb-grid{width:100%;height:100%;background-image:linear-gradient(#6684a733 1px,transparent 1px),linear-gradient(90deg,#6684a733 1px,transparent 1px);background-size:22px 22px;transform:perspective(130px) rotateX(52deg) scale(1.3);transform-origin:center 70%}.emptythumb-label{position:absolute;bottom:10px;left:12px;color:#a8bdd7;font-size:9px;letter-spacing:.14em}
 #backProjects{position:absolute;left:14px;top:14px;z-index:4;width:42px;height:42px;padding:0;border-radius:12px;background:#172231eF;border-color:#52647d;font-size:20px}
 .viewcube{position:absolute;right:16px;top:15px;width:106px;height:106px;perspective:450px;display:grid;place-items:center;z-index:4;pointer-events:none}.cube{width:62px;height:62px;position:relative;transform-style:preserve-3d;pointer-events:auto;transition:transform .2s}.face{position:absolute;width:62px;height:62px;padding:2px;display:grid;place-items:center;background:#314761;border:1px solid #a0c4ec;color:#e8f3ff;font-size:9px;font-weight:750;border-radius:2px;opacity:.97}.face:hover{background:#5279a4}.front{transform:translateZ(31px)}.back{transform:rotateY(180deg) translateZ(31px)}.right{transform:rotateY(90deg) translateZ(31px)}.left{transform:rotateY(-90deg) translateZ(31px)}.top{transform:rotateX(90deg) translateZ(31px)}.bottom{transform:rotateX(-90deg) translateZ(31px)}
-#sceneStatus{position:absolute;left:14px;bottom:13px;z-index:3;color:#8f9db0;background:#151e2bd9;border:1px solid #354258;border-radius:9px;padding:7px 10px;font-size:10px;pointer-events:none}
+#sceneStatus{position:absolute;left:14px;bottom:13px;z-index:3;color:#8f9db0;background:#151e2bd9;border:1px solid #354258;border-radius:9px;padding:7px 10px;font-size:10px;pointer-events:none}#measureHud{position:absolute;right:14px;bottom:13px;z-index:4;min-width:176px;padding:10px 12px;border:1px solid #49617e;border-radius:10px;background:#172334ed;color:#e8f1fc;font-size:11px;pointer-events:none;box-shadow:0 6px 20px #0003}#measureHud strong{display:block;color:#9fc7fa;font-size:10px;letter-spacing:.1em;margin-bottom:5px}#measureValue{font-variant-numeric:tabular-nums;font-size:13px}#measureHint{display:block;color:#9eafc4;font-size:10px;margin-top:4px}
 #sceneError{display:none;position:absolute;inset:0;z-index:8;background:#111923f2;place-items:center;padding:25px;text-align:center;color:#dce7f5}#sceneError.show{display:grid}#sceneError div{max-width:360px}#sceneError strong{display:block;font-size:18px;margin-bottom:8px}#sceneError p{color:#9eacbf;font-size:13px}
 @media(max-width:640px){.topbar{height:56px;padding:0 15px}.page{padding-top:38px}.sectionhead{margin-top:34px}.projectgrid{grid-template-columns:1fr}.projectcard{min-height:190px}.thumb{height:116px}.viewcube{right:5px;top:126px;transform:scale(.78);transform-origin:top right}#documentHeader{height:62px;padding:0 9px;gap:8px}.document-heading div{font-size:16px;max-width:58vw}#editorToolbar{top:62px;height:48px;padding:0 7px;gap:2px}#editorToolbar button{min-width:35px;height:38px;font-size:21px}#viewport{inset:110px 0 0}#sceneStatus{left:9px;bottom:9px}}
 </style>
@@ -69,7 +69,7 @@
 <div class="viewcube"><div class="cube" id="orientationCube">
 <button class="face front" data-view="front">FRENTE</button><button class="face back" data-view="back">ATRÁS</button><button class="face right" data-view="right">DERECHA</button><button class="face left" data-view="left">IZQUIERDA</button><button class="face top" data-view="top">ARRIBA</button><button class="face bottom" data-view="bottom">ABAJO</button>
 </div></div>
-<div id="sceneStatus">ESPACIO VACÍO · <span id="activeProjectName">PROYECTO</span></div>
+<div id="sceneStatus">ESPACIO VACÍO · <span id="activeProjectName">PROYECTO</span></div><div id="measureHud"><strong>MEDIDAS · cm</strong><span id="measureValue">Cursor: —</span><small id="measureHint">1 unidad = 1 cm</small></div>
 <div id="helpPanel"><strong>Controles del espacio 3D</strong><p>Arrastra con un dedo para orbitar. Usa dos dedos para acercar o alejar. El cubo permite elegir una perspectiva.</p><button id="closeHelp">Entendido</button></div>
 <div id="sceneError"><div><strong>No se pudo iniciar el motor 3D</strong><p id="sceneErrorText">Comprueba tu conexión a Internet y vuelve a intentarlo.</p><button id="retry3D" class="primary">Reintentar</button></div></div>
 </main>
@@ -105,7 +105,7 @@
 let renderer,scene,camera,controls,observer,raf=0,started=false,THREE;
 const host=document.getElementById('viewport'),errorBox=document.getElementById('sceneError'),errorText=document.getElementById('sceneErrorText'),cube=document.getElementById('orientationCube');
 let gridObject,axesObject,defaultCameraPosition;
-let activeTool='select',drawStart=null,previewObject=null,drawnObjects=[],raycaster,groundPlane,ndc;
+let activeTool='select',drawStart=null,previewObject=null,drawnObjects=[],raycaster,groundPlane,ndc,cursorMarker,linePoints=[],lineObject=null;
 async function startViewport(){
  if(started){resize();animate();return;}
  try{
@@ -116,7 +116,7 @@ async function startViewport(){
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
   controls=new mod.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.075;controls.rotateSpeed=.72;controls.zoomSpeed=1;controls.panSpeed=.8;controls.minDistance=5;controls.maxDistance=650;controls.target.set(0,0,0);controls.update();
-  raycaster=new THREE.Raycaster();ndc=new THREE.Vector2();groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+  raycaster=new THREE.Raycaster();ndc=new THREE.Vector2();groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);cursorMarker=new THREE.Group();const cursorDot=new THREE.Mesh(new THREE.SphereGeometry(.65,12,8),new THREE.MeshBasicMaterial({color:0x8ebaff,depthTest:false}));cursorDot.position.y=.8;cursorMarker.add(cursorDot);const cursorRing=new THREE.Mesh(new THREE.RingGeometry(1.8,2.15,32),new THREE.MeshBasicMaterial({color:0x8ebaff,side:THREE.DoubleSide,depthTest:false}));cursorRing.rotation.x=-Math.PI/2;cursorRing.position.y=.08;cursorMarker.add(cursorRing);cursorMarker.visible=false;scene.add(cursorMarker);
   scene.add(new THREE.HemisphereLight(0xdceaff,0x202938,2));
   const key=new THREE.DirectionalLight(0xffffff,2.1);key.position.set(90,140,100);scene.add(key);
   const fill=new THREE.DirectionalLight(0x719bd0,.65);fill.position.set(-100,50,-80);scene.add(fill);
@@ -145,7 +145,10 @@ async function startViewport(){
  }catch(err){errorText.textContent='No se pudo cargar Three.js o WebGL. Comprueba Internet y que tu navegador permita aceleración gráfica. Detalle: '+(err&&err.message?err.message:'error desconocido');errorBox.classList.add('show');console.error(err);}
 }
 function setTool(tool){
+ if(activeTool==='line'&&tool!=='line')finishContinuousLine();
  activeTool=tool;
+ if(cursorMarker)cursorMarker.visible=false;
+ if(tool!=='line')updateMeasure('Cursor: —',tool==='select'?'Selecciona una herramienta de dibujo':'Arrastra para dibujar');
  const labels={select:'Seleccionar',line:'Dibujar línea',rect:'Dibujar rectángulo',circle:'Dibujar círculo'};
  ['select','line','rect','circle'].forEach(t=>document.getElementById(t+'Tool').classList.toggle('tool-active',t===tool));
  document.getElementById('saveState').textContent=labels[tool];
@@ -162,22 +165,33 @@ function pointOnGround(event){
 function beginSketch(event){
  if(activeTool==='select'||event.button!==0)return;
  const p=pointOnGround(event);if(!p)return;
- event.preventDefault();renderer.domElement.setPointerCapture(event.pointerId);
- drawStart=p;previewObject=makeShape(activeTool,p,p,true);if(previewObject)scene.add(previewObject);
+ event.preventDefault();
+ if(activeTool==='line'){if(!linePoints.length){linePoints=[p.clone()];lineObject=new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints),new THREE.LineBasicMaterial({color:0xe5efff}));scene.add(lineObject);}else linePoints.push(p.clone());updateContinuousLine(p);return;}
+ renderer.domElement.setPointerCapture(event.pointerId);drawStart=p;previewObject=makeShape(activeTool,p,p,true);if(previewObject)scene.add(previewObject);
 }
 function moveSketch(event){
- if(!drawStart||!previewObject)return;
  const p=pointOnGround(event);if(!p)return;
+ if(cursorMarker){cursorMarker.position.set(p.x,0,p.z);cursorMarker.visible=activeTool!=='select';}
+ if(activeTool==='line'&&linePoints.length){updateContinuousLine(p);return;}
+ if(!drawStart||!previewObject)return;
  scene.remove(previewObject);previewObject.geometry.dispose();previewObject=makeShape(activeTool,drawStart,p,true);if(previewObject)scene.add(previewObject);
+ const dx=Math.abs(p.x-drawStart.x),dz=Math.abs(p.z-drawStart.z),distance=Math.hypot(dx,dz);
+ if(activeTool==='rect')updateMeasure('Ancho: '+fmt(dx)+' cm · Alto: '+fmt(dz)+' cm','Diagonal: '+fmt(distance)+' cm');
+ else if(activeTool==='circle')updateMeasure('Diámetro: '+fmt(distance*2)+' cm','Radio: '+fmt(distance)+' cm');
 }
 function finishSketch(event){
- if(!drawStart)return;
+ if(activeTool==='line'||!drawStart)return;
  const p=pointOnGround(event)||drawStart;
  if(previewObject){scene.remove(previewObject);previewObject.geometry.dispose();}
  const obj=makeShape(activeTool,drawStart,p,false);
  if(obj){scene.add(obj);drawnObjects.push(obj);document.getElementById('saveState').textContent=drawnObjects.length+' elemento(s)';}
- previewObject=null;drawStart=null;
+ previewObject=null;drawStart=null;updateMeasure('Pieza: '+shapeMeasure(activeTool,p),'Dibujo añadido · medidas en cm');
 }
+function fmt(n){return (Math.round(n*10)/10).toFixed(1);}
+function updateMeasure(value,hint){const v=document.getElementById('measureValue'),h=document.getElementById('measureHint');if(v)v.textContent=value;if(h)h.textContent=hint;}
+function shapeMeasure(type,p){if(type==='rect')return fmt(Math.abs(p.x-drawStart.x))+' × '+fmt(Math.abs(p.z-drawStart.z))+' cm';if(type==='circle')return 'Ø '+fmt(Math.hypot(p.x-drawStart.x,p.z-drawStart.z)*2)+' cm';return '—';}
+function updateContinuousLine(cursor){if(!lineObject||!linePoints.length)return;const pts=linePoints.concat(cursor?[cursor.clone()]:[]);lineObject.geometry.dispose();lineObject.geometry=new THREE.BufferGeometry().setFromPoints(pts);const last=linePoints[linePoints.length-1],d=cursor?last.distanceTo(cursor):0;updateMeasure('Tramo: '+fmt(d)+' cm','Línea continua · '+linePoints.length+' punto(s) fijado(s)');}
+function finishContinuousLine(){if(lineObject&&linePoints.length>1){lineObject.geometry.dispose();lineObject.geometry=new THREE.BufferGeometry().setFromPoints(linePoints);drawnObjects.push(lineObject);document.getElementById('saveState').textContent=drawnObjects.length+' elemento(s)';}else if(lineObject){scene.remove(lineObject);lineObject.geometry.dispose();lineObject.material.dispose();}lineObject=null;linePoints=[];}
 function makeShape(type,a,b,preview){
  const points=[];
  if(type==='line'){points.push(a.clone(),b.clone());}
