@@ -24,12 +24,12 @@
 .newcard{min-height:210px;border:1px dashed #52647d;background:#141c27;display:grid;place-items:center;text-align:center;padding:22px;gap:9px}.plus{width:42px;height:42px;border:1px solid #57749a;border-radius:12px;display:grid;place-items:center;color:var(--blue);font-size:26px}.newcard strong{font-size:14px}.newcard small{color:var(--muted);max-width:190px}
 .empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:14px;padding:30px;text-align:center;color:var(--muted)}
 .modalback{position:fixed;inset:0;background:#05080dcc;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modalback.show{display:flex}.modal{width:min(420px,100%);background:#1a2330;border:1px solid #3a4a61;border-radius:17px;padding:23px;box-shadow:0 25px 90px #0009}.modal h2{margin:0 0 5px;font-size:22px}.modal p{margin:0 0 20px;color:var(--muted);font-size:13px}.field{display:grid;gap:7px;margin:15px 0}.field label{font-size:12px;color:#c4cfdf}.field input{width:100%;padding:12px;border-radius:9px;border:1px solid #3b4a60;background:#111923;color:var(--text)}.modalactions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}
-#workspace{display:none;position:fixed;inset:0;overflow:hidden;background:#131a25;touch-action:none}#viewport{position:absolute;inset:0;touch-action:none}#viewport canvas{display:block;width:100%;height:100%;outline:none}
+#workspace{display:none;position:fixed;inset:0;overflow:hidden;background:#131a25;touch-action:none}#documentHeader{height:66px;position:absolute;inset:0 0 auto 0;z-index:6;background:#1953a3;color:white;display:flex;align-items:center;padding:0 14px;gap:13px;box-shadow:0 2px 8px #0003}#backProjects{position:static;flex:none;width:42px;height:42px;background:transparent;border:0;color:white;font-size:25px;padding:0}#backProjects:hover,#documentHeader button:hover{background:#ffffff20}.document-heading{min-width:0;display:flex;flex-direction:column;line-height:1.2}.document-heading div{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(56vw,440px)}.document-heading small{font-size:12px;color:#d6e4f8;margin-top:4px}.header-actions{margin-left:auto;display:flex;gap:8px}.header-actions button{border:0;background:transparent;color:white;width:38px;height:42px;padding:0;font-size:25px;border-radius:50%}#helpButton{font-weight:800;border:2px solid #ffffffb8;width:30px;height:30px;line-height:24px;font-size:19px}#moreMenu{display:none;position:absolute;right:12px;top:58px;min-width:185px;background:#1d2939;border:1px solid #455a75;border-radius:10px;padding:6px;box-shadow:0 12px 32px #0008}#moreMenu.show{display:grid}#moreMenu button{text-align:left;background:transparent;border:0;border-radius:6px;padding:11px}#editorToolbar{position:absolute;z-index:5;top:66px;left:0;right:0;height:52px;display:flex;align-items:center;gap:5px;padding:0 12px;background:#e9edf2;color:#253448;border-bottom:1px solid #b8c4d2;box-shadow:0 2px 6px #0002}#editorToolbar button{color:#27384c;background:transparent;border:0;border-radius:7px;min-width:39px;height:40px;padding:0 10px;font-size:23px}#editorToolbar button:disabled{opacity:.35;cursor:default}#editorToolbar button.tool-active{color:#1455a5;background:#d4e4f8}#editorToolbar .tool-separator{height:30px;width:1px;background:#c2ccd7;margin:0 5px}.save-state{font-size:11px;color:#647386;margin-left:auto;white-space:nowrap}#viewport{position:absolute;inset:118px 0 0;touch-action:none}#viewport canvas{display:block;width:100%;height:100%;outline:none}#helpPanel{display:none;position:absolute;z-index:8;right:14px;top:75px;width:min(290px,calc(100% - 28px));background:#1c2939;border:1px solid #526985;border-radius:12px;padding:15px;box-shadow:0 12px 32px #0008}#helpPanel.show{display:block}#helpPanel p{font-size:12px;color:#b6c4d7}#helpPanel button{padding:7px 12px} .emptythumb-grid{width:100%;height:100%;background-image:linear-gradient(#6684a733 1px,transparent 1px),linear-gradient(90deg,#6684a733 1px,transparent 1px);background-size:22px 22px;transform:perspective(130px) rotateX(52deg) scale(1.3);transform-origin:center 70%}.emptythumb-label{position:absolute;bottom:10px;left:12px;color:#a8bdd7;font-size:9px;letter-spacing:.14em}
 #backProjects{position:absolute;left:14px;top:14px;z-index:4;width:42px;height:42px;padding:0;border-radius:12px;background:#172231eF;border-color:#52647d;font-size:20px}
 .viewcube{position:absolute;right:16px;top:15px;width:106px;height:106px;perspective:450px;display:grid;place-items:center;z-index:4;pointer-events:none}.cube{width:62px;height:62px;position:relative;transform-style:preserve-3d;pointer-events:auto;transition:transform .2s}.face{position:absolute;width:62px;height:62px;padding:2px;display:grid;place-items:center;background:#314761;border:1px solid #a0c4ec;color:#e8f3ff;font-size:9px;font-weight:750;border-radius:2px;opacity:.97}.face:hover{background:#5279a4}.front{transform:translateZ(31px)}.back{transform:rotateY(180deg) translateZ(31px)}.right{transform:rotateY(90deg) translateZ(31px)}.left{transform:rotateY(-90deg) translateZ(31px)}.top{transform:rotateX(90deg) translateZ(31px)}.bottom{transform:rotateX(-90deg) translateZ(31px)}
 #sceneStatus{position:absolute;left:14px;bottom:13px;z-index:3;color:#8f9db0;background:#151e2bd9;border:1px solid #354258;border-radius:9px;padding:7px 10px;font-size:10px;pointer-events:none}
 #sceneError{display:none;position:absolute;inset:0;z-index:8;background:#111923f2;place-items:center;padding:25px;text-align:center;color:#dce7f5}#sceneError.show{display:grid}#sceneError div{max-width:360px}#sceneError strong{display:block;font-size:18px;margin-bottom:8px}#sceneError p{color:#9eacbf;font-size:13px}
-@media(max-width:640px){.topbar{height:56px;padding:0 15px}.page{padding-top:38px}.sectionhead{margin-top:34px}.projectgrid{grid-template-columns:1fr}.projectcard{min-height:190px}.thumb{height:116px}.viewcube{right:5px;top:5px;transform:scale(.82);transform-origin:top right}#backProjects{left:9px;top:9px;width:39px;height:39px}#sceneStatus{left:9px;bottom:9px}}
+@media(max-width:640px){.topbar{height:56px;padding:0 15px}.page{padding-top:38px}.sectionhead{margin-top:34px}.projectgrid{grid-template-columns:1fr}.projectcard{min-height:190px}.thumb{height:116px}.viewcube{right:5px;top:126px;transform:scale(.78);transform-origin:top right}#documentHeader{height:62px;padding:0 9px;gap:8px}.document-heading div{font-size:16px;max-width:58vw}#editorToolbar{top:62px;height:48px;padding:0 7px;gap:2px}#editorToolbar button{min-width:35px;height:38px;font-size:21px}#viewport{inset:110px 0 0}#sceneStatus{left:9px;bottom:9px}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
@@ -54,12 +54,22 @@
 </form>
 </div>
 <main id="workspace">
+<header id="documentHeader">
+<button id="backProjects" aria-label="Volver a proyectos" title="Volver a proyectos">⌂</button>
+<div class="document-heading"><div id="documentTitle">Documento sin título</div><small>Main</small></div>
+<div class="header-actions"><button id="helpButton" title="Ayuda" aria-label="Ayuda">?</button><button id="moreButton" title="Más opciones" aria-label="Más opciones">⋮</button></div>
+<div id="moreMenu"><button id="saveProject">Guardar proyecto</button><button id="closeProject">Volver a proyectos</button></div>
+</header>
+<nav id="editorToolbar" aria-label="Herramientas del espacio">
+<button id="undoButton" title="Deshacer" disabled>↶</button><button id="redoButton" title="Rehacer" disabled>↷</button><span class="tool-separator"></span>
+<button id="gridButton" class="tool-active" title="Mostrar u ocultar cuadrícula">▦</button><button id="axesButton" class="tool-active" title="Mostrar u ocultar ejes">⌖</button><button id="fitButton" title="Restablecer vista">⟳</button><span class="tool-separator"></span><span class="save-state" id="saveState">Guardado</span>
+</nav>
 <div id="viewport" aria-label="Espacio de trabajo tridimensional"></div>
-<button id="backProjects" title="Volver a proyectos" aria-label="Volver a proyectos">←</button>
 <div class="viewcube"><div class="cube" id="orientationCube">
 <button class="face front" data-view="front">FRENTE</button><button class="face back" data-view="back">ATRÁS</button><button class="face right" data-view="right">DERECHA</button><button class="face left" data-view="left">IZQUIERDA</button><button class="face top" data-view="top">ARRIBA</button><button class="face bottom" data-view="bottom">ABAJO</button>
 </div></div>
-<div id="sceneStatus">ESCENA VACÍA · <span id="activeProjectName">PROYECTO</span></div>
+<div id="sceneStatus">ESPACIO VACÍO · <span id="activeProjectName">PROYECTO</span></div>
+<div id="helpPanel"><strong>Controles del espacio 3D</strong><p>Arrastra con un dedo para orbitar. Usa dos dedos para acercar o alejar. El cubo permite elegir una perspectiva.</p><button id="closeHelp">Entendido</button></div>
 <div id="sceneError"><div><strong>No se pudo iniciar el motor 3D</strong><p id="sceneErrorText">Comprueba tu conexión a Internet y vuelve a intentarlo.</p><button id="retry3D" class="primary">Reintentar</button></div></div>
 </main>
 <script>
@@ -68,18 +78,23 @@
  const screen=document.getElementById('projectScreen'),workspace=document.getElementById('workspace'),grid=document.getElementById('projectGrid'),modal=document.getElementById('newProjectModal'),input=document.getElementById('projectName');
  let projects=[];
  try{projects=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(projects))projects=[];}catch(e){projects=[];}
- if(!projects.length){projects=[{id:'demo-3d',name:'Proyecto de demostración',updated:new Date().toISOString(),demo:true}];save();}
+
  function save(){try{localStorage.setItem(KEY,JSON.stringify(projects));}catch(e){}}
  function safeDate(v){try{return new Intl.DateTimeFormat('es',{day:'numeric',month:'short',year:'numeric'}).format(new Date(v));}catch(e){return 'Reciente';}}
- function card(p){const b=document.createElement('button');b.className='projectcard';b.type='button';b.innerHTML='<div class="thumb"><svg viewBox="0 0 120 90" aria-hidden="true"><path d="M60 12 99 32 60 53 21 32Z" fill="#9fc8f3" stroke="#d6e9ff" stroke-width="1.5"/><path d="M21 32v37l39 18V53Z" fill="#42678e" stroke="#9fc8f3" stroke-width="1.5"/><path d="M99 32v37L60 87V53Z" fill="#2d4c70" stroke="#9fc8f3" stroke-width="1.5"/></svg></div><div class="cardinfo"><div><strong></strong><small></small></div><span class="cardarrow">›</span></div>';b.querySelector('strong').textContent=p.name;b.querySelector('small').textContent='Modificado · '+safeDate(p.updated);b.addEventListener('click',()=>enter(p.id));return b;}
- function render(){grid.replaceChildren();projects.slice().sort((a,b)=>new Date(b.updated)-new Date(a.updated)).forEach(p=>grid.appendChild(card(p)));const n=document.createElement('button');n.className='projectcard newcard';n.type='button';n.innerHTML='<span class="plus">＋</span><strong>Crear nuevo proyecto</strong><small>Comienza con un espacio 3D vacío y construye desde cero.</small>';n.addEventListener('click',openModal);grid.appendChild(n);document.getElementById('projectCount').textContent=projects.length+' '+(projects.length===1?'proyecto':'proyectos');}
+ function card(p){const b=document.createElement('button');b.className='projectcard';b.type='button';b.innerHTML='<div class="thumb"><div class="emptythumb-grid"></div><span class="emptythumb-label">ESPACIO VACÍO</span></div><div class="cardinfo"><div><strong></strong><small></small></div><span class="cardarrow">›</span></div>';b.querySelector('strong').textContent=p.name;b.querySelector('small').textContent='Modificado · '+safeDate(p.updated);b.addEventListener('click',()=>enter(p.id));return b;}
+ function render(){grid.replaceChildren();projects.slice().sort((a,b)=>new Date(b.updated)-new Date(a.updated)).forEach(p=>grid.appendChild(card(p)));if(!projects.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Todavía no tienes proyectos. Crea uno nuevo para comenzar a diseñar.';grid.appendChild(empty);}const n=document.createElement('button');n.className='projectcard newcard';n.type='button';n.innerHTML='<span class="plus">＋</span><strong>Crear nuevo proyecto</strong><small>Comienza con un espacio 3D vacío y construye desde cero.</small>';n.addEventListener('click',openModal);grid.appendChild(n);document.getElementById('projectCount').textContent=projects.length+' '+(projects.length===1?'proyecto':'proyectos');}
  function openModal(){modal.classList.add('show');input.value='';setTimeout(()=>input.focus(),40);}
  function closeModal(){modal.classList.remove('show');}
- function enter(id){const p=projects.find(x=>x.id===id);if(!p)return;currentId=id;p.updated=new Date().toISOString();save();render();document.getElementById('activeProjectName').textContent=p.name.toUpperCase();screen.style.display='none';workspace.style.display='block';if(window.startViewport)window.startViewport();else window.dispatchEvent(new Event('nocturne-start-3d'));}
+ function enter(id){const p=projects.find(x=>x.id===id);if(!p)return;currentId=id;p.updated=new Date().toISOString();save();render();document.getElementById('activeProjectName').textContent=p.name.toUpperCase();document.getElementById('documentTitle').textContent=p.name;screen.style.display='none';workspace.style.display='block';if(window.startViewport)window.startViewport();else window.dispatchEvent(new Event('nocturne-start-3d'));}
  let currentId=null;
  document.getElementById('newProjectTop').addEventListener('click',openModal);document.getElementById('newProjectCard').addEventListener('click',openModal);document.getElementById('cancelCreate').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
  document.getElementById('projectForm').addEventListener('submit',e=>{e.preventDefault();const name=input.value.trim();if(!name)return;const p={id:'p-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name,updated:new Date().toISOString()};projects.push(p);save();closeModal();render();enter(p.id);});
  document.getElementById('backProjects').addEventListener('click',()=>{workspace.style.display='none';screen.style.display='block';if(window.stopViewport)window.stopViewport();});
+ document.getElementById('closeProject').addEventListener('click',()=>document.getElementById('backProjects').click());
+ document.getElementById('moreButton').addEventListener('click',()=>document.getElementById('moreMenu').classList.toggle('show'));
+ document.getElementById('saveProject').addEventListener('click',()=>{save();document.getElementById('saveState').textContent='Guardado';document.getElementById('moreMenu').classList.remove('show');});
+ document.getElementById('helpButton').addEventListener('click',()=>document.getElementById('helpPanel').classList.toggle('show'));
+ document.getElementById('closeHelp').addEventListener('click',()=>document.getElementById('helpPanel').classList.remove('show'));
  document.getElementById('retry3D').addEventListener('click',()=>{document.getElementById('sceneError').classList.remove('show');if(window.startViewport)window.startViewport();});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal();});
  render();
@@ -88,6 +103,7 @@
 <script type="module">
 let renderer,scene,camera,controls,observer,raf=0,started=false,THREE;
 const host=document.getElementById('viewport'),errorBox=document.getElementById('sceneError'),errorText=document.getElementById('sceneErrorText'),cube=document.getElementById('orientationCube');
+let gridObject,axesObject,defaultCameraPosition;
 async function startViewport(){
  if(started){resize();animate();return;}
  try{
@@ -101,12 +117,15 @@ async function startViewport(){
   scene.add(new THREE.HemisphereLight(0xdceaff,0x202938,2));
   const key=new THREE.DirectionalLight(0xffffff,2.1);key.position.set(90,140,100);scene.add(key);
   const fill=new THREE.DirectionalLight(0x719bd0,.65);fill.position.set(-100,50,-80);scene.add(fill);
-  const grid=new THREE.GridHelper(200,100,0x43546b,0x263346);grid.position.y=-.02;scene.add(grid);
-  scene.add(new THREE.AxesHelper(65));
-  const origin=new THREE.Mesh(new THREE.SphereGeometry(.22,32,24),new THREE.MeshStandardMaterial({color:0x8ebaff,metalness:.28,roughness:.32}));scene.add(origin);
+  gridObject=new THREE.GridHelper(200,100,0x43546b,0x263346);gridObject.position.y=-.02;scene.add(gridObject);
+  axesObject=new THREE.AxesHelper(65);scene.add(axesObject);defaultCameraPosition=camera.position.clone();
+  
   controls.addEventListener('change',updateCube);
   observer=new ResizeObserver(resize);observer.observe(host);resize();started=true;errorBox.classList.remove('show');
   document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  document.getElementById('gridButton').addEventListener('click',()=>{gridObject.visible=!gridObject.visible;document.getElementById('gridButton').classList.toggle('tool-active',gridObject.visible);});
+  document.getElementById('axesButton').addEventListener('click',()=>{axesObject.visible=!axesObject.visible;document.getElementById('axesButton').classList.toggle('tool-active',axesObject.visible);});
+  document.getElementById('fitButton').addEventListener('click',()=>{camera.position.copy(defaultCameraPosition);controls.target.set(0,0,0);controls.update();});
   animate();
  }catch(err){errorText.textContent='No se pudo cargar Three.js o WebGL. Comprueba Internet y que tu navegador permita aceleración gráfica. Detalle: '+(err&&err.message?err.message:'error desconocido');errorBox.classList.add('show');console.error(err);}
 }
