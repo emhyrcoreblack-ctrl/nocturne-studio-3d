@@ -97,7 +97,7 @@
  document.getElementById('saveProject').addEventListener('click',()=>{if(window.saveViewportProject)window.saveViewportProject();save();document.getElementById('saveState').textContent='Guardado';document.getElementById('moreMenu').classList.remove('show');});
  document.getElementById('helpButton').addEventListener('click',()=>document.getElementById('helpPanel').classList.toggle('show'));
  document.getElementById('closeHelp').addEventListener('click',()=>document.getElementById('helpPanel').classList.remove('show'));
- document.getElementById('retry3D').addEventListener('click',()=>{document.getElementById('sceneError').classList.remove('show');if(window.startViewport)window.startViewport();});
+ document.getElementById('retry3D').addEventListener('click',()=>{document.getElementById('sceneError').classList.remove('show');if(window.startViewport)window.startViewport().then(()=>{if(window.loadViewportProject)window.loadViewportProject(currentId);});});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal();});
  render();
 })();
