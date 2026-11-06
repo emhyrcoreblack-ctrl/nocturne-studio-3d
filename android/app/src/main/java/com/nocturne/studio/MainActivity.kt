@@ -37,6 +37,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun NocturneApp() {
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var projectCreated by remember { mutableStateOf(false) }
+    var projectName by remember { mutableStateOf("Mi primer proyecto") }
+    var projectUnits by remember { mutableStateOf("Milímetros") }
     var activeTool by remember { mutableStateOf("Seleccionar") }
     var panel by remember { mutableStateOf("Ninguno") }
     var showInspector by remember { mutableStateOf(false) }
@@ -68,6 +72,9 @@ private fun NocturneApp() {
         onBackground = Color.White, onSurface = Color.White
     )) {
         Box(Modifier.fillMaxSize().background(Ink)) {
+            if (!projectCreated) {
+                NewProjectHome(onCreate = { showCreateDialog = true })
+            } else {
             AndroidView(
                 factory = { context -> CadSurfaceView(context).also { view -> surface = view; view.onSelectionChanged = { selectedFace = it } } },
                 modifier = Modifier.fillMaxSize()
@@ -156,6 +163,103 @@ private fun NocturneApp() {
             Text("Plano de trabajo vacío · Crea tu geometría con Croquis · Arrastra para orbitar · Pellizca para zoom", Modifier.align(Alignment.TopCenter).padding(top=74.dp)
                 .background(Color(0x990B1018), RoundedCornerShape(20.dp)).padding(horizontal=12.dp, vertical=6.dp),
                 color=Muted, fontSize=10.sp)
+            }
+            if (showCreateDialog) {
+                AlertDialog(
+                    onDismissRequest = { showCreateDialog = false },
+                    title = { Text("Crear proyecto", color = Color.White) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            OutlinedTextField(
+                                value = projectName,
+                                onValueChange = { projectName = it },
+                                singleLine = true,
+                                label = { Text("Nombre del proyecto") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text("Unidades de diseño", color = Muted, fontSize = 12.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                listOf("Milímetros", "Centímetros", "Pulgadas").forEach { unit ->
+                                    FilterChip(
+                                        selected = projectUnits == unit,
+                                        onClick = { projectUnits = unit },
+                                        label = { Text(unit, fontSize = 11.sp) }
+                                    )
+                                }
+                            }
+                            Text("Se abrirá un espacio de trabajo vacío.", color = Muted, fontSize = 11.sp)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            if (projectName.isNotBlank()) {
+                                showCreateDialog = false
+                                projectCreated = true
+                            }
+                        }) { Text("Crear proyecto") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCreateDialog = false }) { Text("Cancelar") }
+                    },
+                    containerColor = Panel,
+                    titleContentColor = Color.White,
+                    textContentColor = Muted
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun NewProjectHome(onCreate: () -> Unit) {
+    Box(
+        Modifier.fillMaxSize().background(Color(0xFF151719)).padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                "NOCTURNE",
+                color = Color(0xFFF2F4F7),
+                fontSize = 22.sp,
+                letterSpacing = 3.sp
+            )
+            Text(
+                "STUDIO 3D",
+                color = Color(0xFF8DB8FF),
+                fontSize = 10.sp,
+                letterSpacing = 4.sp
+            )
+            Spacer(Modifier.height(42.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth().height(190.dp).clickable(onClick = onCreate),
+                shape = RoundedCornerShape(22.dp),
+                color = Color(0xFF252B32),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF39434E))
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        Modifier.size(58.dp).background(Color(0xFF378FC5), RoundedCornerShape(18.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("+", color = Color.White, fontSize = 38.sp, lineHeight = 40.sp)
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text("Nuevo Proyecto", color = Color.White, fontSize = 20.sp)
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "Comienza un nuevo diseño 3D desde cero",
+                        color = Color(0xFFAEB7C0),
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     }
 }
