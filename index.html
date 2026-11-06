@@ -61,7 +61,7 @@
 <div id="moreMenu"><button id="saveProject">Guardar proyecto</button><button id="closeProject">Volver a proyectos</button></div>
 </header>
 <nav id="editorToolbar" aria-label="Herramientas del espacio">
-<button id="undoButton" title="Deshacer" disabled>↶</button><button id="redoButton" title="Rehacer" disabled>↷</button><span class="tool-separator"></span>
+<button id="undoButton" title="Deshacer">↶</button><button id="redoButton" title="Rehacer">↷</button><span class="tool-separator"></span>
 <button id="drawMenuButton" title="Herramientas de dibujo" aria-label="Abrir herramientas de dibujo" aria-expanded="false">✎</button><div id="drawToolsPanel" role="group" aria-label="Herramientas de dibujo"><button id="selectTool" class="tool-active" title="Seleccionar">⌖ <small>Seleccionar</small></button><button id="lineTool" title="Dibujar línea">／ <small>Línea</small></button><button id="rectTool" title="Dibujar rectángulo">□ <small>Rectángulo</small></button><button id="circleTool" title="Dibujar círculo">○ <small>Círculo</small></button></div><span class="tool-separator"></span>
 <button id="gridButton" class="tool-active" title="Mostrar u ocultar cuadrícula">▦</button><button id="axesButton" class="tool-active" title="Mostrar u ocultar ejes">⌖</button><button id="fitButton" title="Restablecer vista">⟳</button><span class="tool-separator"></span><span class="save-state" id="saveState">Seleccionar</span>
 </nav>
@@ -107,7 +107,7 @@ let renderer,scene,camera,controls,observer,raf=0,started=false,THREE;
 const host=document.getElementById('viewport'),errorBox=document.getElementById('sceneError'),errorText=document.getElementById('sceneErrorText'),cube=document.getElementById('orientationCube');
 let gridObject,axesObject,defaultCameraPosition,measureAnchor=null,measureValue='',measureHint='',activeProjectId=null;
 let activeTool='select',drawStart=null,previewObject=null,drawnObjects=[],raycaster,groundPlane,ndc,cursorMarker,linePoints=[],lineObject=null;
-const activeTouchPointers=new Set();let pinchGesture=false;
+const activeTouchPointers=new Set();let pinchGesture=false;let drawingHistory=[],drawingHistoryIndex=-1,historyProjectId=null,restoringHistory=false;
 async function startViewport(){
  if(started){resize();animate();return;}
  try{
@@ -132,6 +132,9 @@ async function startViewport(){
   canvas.addEventListener('pointermove',moveSketch);
   canvas.addEventListener('pointercancel',cancelSketch);
   setTool('select');
+  document.getElementById('undoButton').addEventListener('click',undoDrawing);
+  document.getElementById('redoButton').addEventListener('click',redoDrawing);
+  updateHistoryButtons();
   const drawMenu=document.getElementById('drawToolsPanel'),drawMenuButton=document.getElementById('drawMenuButton');
   drawMenuButton.addEventListener('click',()=>{const open=drawMenu.classList.toggle('open');drawMenuButton.classList.toggle('menu-open',open);drawMenuButton.setAttribute('aria-expanded',String(open));});
   document.getElementById('selectTool').addEventListener('click',()=>chooseTool('select'));
@@ -171,7 +174,7 @@ function beginSketch(event){
  if(activeTool==='select'||(event.pointerType!=='touch'&&event.button!==0))return;
  const p=pointOnGround(event);if(!p)return;
  event.preventDefault();
- if(activeTool==='line'){if(!linePoints.length){linePoints=[p.clone()];lineObject=new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints),new THREE.LineBasicMaterial({color:0xe5efff}));scene.add(lineObject);}else linePoints.push(p.clone());updateContinuousLine(p);saveViewportProject();return;}
+ if(activeTool==='line'){if(!linePoints.length){linePoints=[p.clone()];lineObject=new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints),new THREE.LineBasicMaterial({color:0xe5efff}));scene.add(lineObject);}else linePoints.push(p.clone());updateContinuousLine(p);saveViewportProject();recordDrawingHistory();return;}
  renderer.domElement.setPointerCapture(event.pointerId);drawStart=p;previewObject=makeShape(activeTool,p,p,true);if(previewObject)scene.add(previewObject);
 }
 function moveSketch(event){
@@ -194,7 +197,7 @@ function finishSketch(event){
  if(previewObject){scene.remove(previewObject);disposePreview(previewObject);}
  const obj=makeShape(activeTool,drawStart,p,false);
  if(obj){scene.add(obj);drawnObjects.push(obj);document.getElementById('saveState').textContent=drawnObjects.length+' elemento(s)';}
- const start=drawStart;previewObject=null;drawStart=null;const dx=Math.abs(p.x-start.x),dz=Math.abs(p.z-start.z),d=Math.hypot(dx,dz),anchor=new THREE.Vector3((start.x+p.x)/2,.08,(start.z+p.z)/2);updateMeasureAt(activeTool==='rect'?'Ancho: '+fmt(dx)+' cm · Alto: '+fmt(dz)+' cm':'Diámetro: '+fmt(d*2)+' cm',activeTool==='rect'?'Pieza creada':'Radio: '+fmt(d)+' cm',anchor);saveViewportProject();
+ const start=drawStart;previewObject=null;drawStart=null;const dx=Math.abs(p.x-start.x),dz=Math.abs(p.z-start.z),d=Math.hypot(dx,dz),anchor=new THREE.Vector3((start.x+p.x)/2,.08,(start.z+p.z)/2);updateMeasureAt(activeTool==='rect'?'Ancho: '+fmt(dx)+' cm · Alto: '+fmt(dz)+' cm':'Diámetro: '+fmt(d*2)+' cm',activeTool==='rect'?'Pieza creada':'Radio: '+fmt(d)+' cm',anchor);saveViewportProject();recordDrawingHistory();
 }
 function disposePreview(obj){if(!obj)return;if(obj.geometry)obj.geometry.dispose();if(obj.material){if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose());else obj.material.dispose();}}
 function fmt(n){return (Math.round(n*10)/10).toFixed(1);}
@@ -224,7 +227,14 @@ function setView(name){const p={front:[0,0,150],back:[0,0,-150],top:[0,150,.001]
 function animate(){cancelAnimationFrame(raf);const tick=()=>{raf=requestAnimationFrame(tick);if(controls)controls.update();if(renderer&&scene&&camera){renderer.render(scene,camera);positionMeasure();}};tick();}
 function stopViewport(){if(raf)cancelAnimationFrame(raf);raf=0;}
 function saveViewportProject(){if(!activeProjectId||!window.nocturneProjectData)return;const objects=drawnObjects.map(o=>({closed:!!o.isLineLoop,color:o.material&&o.material.color?o.material.color.getHex():0xe5efff,points:Array.from(o.geometry.attributes.position.array)}));window.nocturneProjectData.set(activeProjectId,{objects,activeLine:linePoints.map(p=>[p.x,p.y,p.z])});}
-function loadViewportProject(id){if(!scene)return;activeProjectId=id;drawnObjects.forEach(o=>{scene.remove(o);disposePreview(o);});drawnObjects=[];if(lineObject){scene.remove(lineObject);disposePreview(lineObject);lineObject=null;}linePoints=[];if(previewObject){scene.remove(previewObject);disposePreview(previewObject);previewObject=null;}drawStart=null;const data=window.nocturneProjectData&&window.nocturneProjectData.get(id);if(data&&Array.isArray(data.objects)){data.objects.forEach(item=>{if(!item||!Array.isArray(item.points)||item.points.length<6)return;const pts=[];for(let i=0;i+2<item.points.length;i+=3)pts.push(new THREE.Vector3(item.points[i],item.points[i+1],item.points[i+2]));const geometry=new THREE.BufferGeometry().setFromPoints(pts);const material=new THREE.LineBasicMaterial({color:Number.isFinite(item.color)?item.color:0xe5efff});const obj=item.closed?new THREE.LineLoop(geometry,material):new THREE.Line(geometry,material);scene.add(obj);drawnObjects.push(obj);});}if(data&&Array.isArray(data.activeLine)&&data.activeLine.length){linePoints=data.activeLine.filter(p=>Array.isArray(p)&&p.length===3).map(p=>new THREE.Vector3(p[0],p[1],p[2]));if(linePoints.length){lineObject=new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints),new THREE.LineBasicMaterial({color:0xe5efff}));scene.add(lineObject);}}document.getElementById('saveState').textContent=drawnObjects.length+' elemento(s)';}
+function loadViewportProject(id,resetHistory=true){if(!scene)return;activeProjectId=id;drawnObjects.forEach(o=>{scene.remove(o);disposePreview(o);});drawnObjects=[];if(lineObject){scene.remove(lineObject);disposePreview(lineObject);lineObject=null;}linePoints=[];if(previewObject){scene.remove(previewObject);disposePreview(previewObject);previewObject=null;}drawStart=null;const data=window.nocturneProjectData&&window.nocturneProjectData.get(id);if(data&&Array.isArray(data.objects)){data.objects.forEach(item=>{if(!item||!Array.isArray(item.points)||item.points.length<6)return;const pts=[];for(let i=0;i+2<item.points.length;i+=3)pts.push(new THREE.Vector3(item.points[i],item.points[i+1],item.points[i+2]));const geometry=new THREE.BufferGeometry().setFromPoints(pts);const material=new THREE.LineBasicMaterial({color:Number.isFinite(item.color)?item.color:0xe5efff});const obj=item.closed?new THREE.LineLoop(geometry,material):new THREE.Line(geometry,material);scene.add(obj);drawnObjects.push(obj);});}if(data&&Array.isArray(data.activeLine)&&data.activeLine.length){linePoints=data.activeLine.filter(p=>Array.isArray(p)&&p.length===3).map(p=>new THREE.Vector3(p[0],p[1],p[2]));if(linePoints.length){lineObject=new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints),new THREE.LineBasicMaterial({color:0xe5efff}));scene.add(lineObject);}}document.getElementById('saveState').textContent=drawnObjects.length+' elemento(s)';if(resetHistory)resetDrawingHistory();}
+function captureDrawingState(){return {objects:drawnObjects.map(o=>({closed:!!o.isLineLoop,color:o.material&&o.material.color?o.material.color.getHex():0xe5efff,points:Array.from(o.geometry.attributes.position.array)})),activeLine:linePoints.map(p=>[p.x,p.y,p.z])};}
+function updateHistoryButtons(){const undo=document.getElementById('undoButton'),redo=document.getElementById('redoButton');if(undo)undo.disabled=drawingHistoryIndex<=0;if(redo)redo.disabled=drawingHistoryIndex<0||drawingHistoryIndex>=drawingHistory.length-1;}
+function resetDrawingHistory(){drawingHistory=[];drawingHistoryIndex=-1;historyProjectId=activeProjectId;recordDrawingHistory();}
+function recordDrawingHistory(){if(restoringHistory||!activeProjectId)return;if(historyProjectId!==activeProjectId){drawingHistory=[];drawingHistoryIndex=-1;historyProjectId=activeProjectId;}const state=captureDrawingState(),serialized=JSON.stringify(state);if(drawingHistoryIndex>=0&&JSON.stringify(drawingHistory[drawingHistoryIndex])===serialized){updateHistoryButtons();return;}drawingHistory=drawingHistory.slice(0,drawingHistoryIndex+1);drawingHistory.push(state);drawingHistoryIndex=drawingHistory.length-1;updateHistoryButtons();}
+function applyDrawingHistory(index){if(index<0||index>=drawingHistory.length||!activeProjectId)return;restoringHistory=true;drawingHistoryIndex=index;window.nocturneProjectData.set(activeProjectId,JSON.parse(JSON.stringify(drawingHistory[index])));loadViewportProject(activeProjectId,false);restoringHistory=false;updateHistoryButtons();}
+function undoDrawing(){if(drawingHistoryIndex>0)applyDrawingHistory(drawingHistoryIndex-1);}
+function redoDrawing(){if(drawingHistoryIndex<drawingHistory.length-1)applyDrawingHistory(drawingHistoryIndex+1);}
 window.saveViewportProject=saveViewportProject;window.loadViewportProject=loadViewportProject;window.startViewport=startViewport;window.stopViewport=stopViewport;window.addEventListener('nocturne-start-3d',startViewport);
 </script>
 </body>
