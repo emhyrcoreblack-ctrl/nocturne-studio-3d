@@ -89,7 +89,7 @@
 let renderer,scene,camera,controls,observer,raf=0,started=false,THREE;
 const host=document.getElementById('viewport'),errorBox=document.getElementById('sceneError'),errorText=document.getElementById('sceneErrorText'),cube=document.getElementById('orientationCube');
 async function startViewport(){
- if(started){resize();return;}
+ if(started){resize();animate();return;}
  try{
   THREE=await import('three');
   const mod=await import('three/addons/controls/OrbitControls.js');
