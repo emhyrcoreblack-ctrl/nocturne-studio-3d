@@ -129,6 +129,7 @@ async function startViewport(){
   canvas.addEventListener('pointerdown',beginSketch);
   canvas.addEventListener('pointerup',finishSketch);
   canvas.addEventListener('pointermove',moveSketch);
+  canvas.addEventListener('pointercancel',cancelSketch);
   setTool('select');
   const drawMenu=document.getElementById('drawToolsPanel'),drawMenuButton=document.getElementById('drawMenuButton');
   drawMenuButton.addEventListener('click',()=>{const open=drawMenu.classList.toggle('open');drawMenuButton.classList.toggle('menu-open',open);drawMenuButton.setAttribute('aria-expanded',String(open));});
@@ -183,6 +184,7 @@ function moveSketch(event){
  if(activeTool==='rect')updateMeasureAt('Ancho: '+fmt(dx)+' cm · Alto: '+fmt(dz)+' cm','Diagonal: '+fmt(distance)+' cm',anchor);
  else if(activeTool==='circle')updateMeasureAt('Diámetro: '+fmt(distance*2)+' cm','Radio: '+fmt(distance)+' cm',new THREE.Vector3(p.x,.08,p.z));
 }
+function cancelSketch(event){if(event.pointerType==='touch'){activeTouchPointers.delete(event.pointerId);if(activeTouchPointers.size===0)pinchGesture=false;}if(drawStart){drawStart=null;if(previewObject){scene.remove(previewObject);previewObject.geometry.dispose();previewObject=null;}}}
 function finishSketch(event){
  if(event.pointerType==='touch'){activeTouchPointers.delete(event.pointerId);if(pinchGesture){if(activeTouchPointers.size===0)pinchGesture=false;return;}if(activeTouchPointers.size>0)return;}
  if(activeTool==='line'||!drawStart)return;
