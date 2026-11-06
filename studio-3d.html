@@ -10,27 +10,27 @@
 *{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font:13px/1.4 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
 button{font:inherit;color:inherit;border:1px solid var(--line);background:#202938;border-radius:7px;padding:8px 11px;cursor:pointer;transition:background .15s,border-color .15s}
 button:hover{background:#2b3b51;border-color:#526985}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-#app{height:100%;display:grid;grid-template-rows:52px 1fr 28px}
-header{display:flex;align-items:center;gap:18px;padding:0 16px;background:#151b25;border-bottom:1px solid var(--line);z-index:2}
+#app{height:100%;display:block}
+header{display:none}
 .brand{font-weight:800;letter-spacing:.12em;font-size:12px;white-space:nowrap}.brand span{color:var(--accent)}
 .header-sub{color:var(--muted);font-size:11px;border-left:1px solid var(--line);padding-left:17px}
 .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}.state{font-size:11px;color:#8bd8b1;display:flex;align-items:center;gap:6px}.dot{width:6px;height:6px;border-radius:50%;background:#65d39b;box-shadow:0 0 9px #65d39b}
 #workspace{position:relative;min-height:0;background:radial-gradient(ellipse at 50% 45%,#202b3a 0%,#131a25 65%,#10141c 100%)}
 #viewport{position:absolute;inset:0;touch-action:none}#viewport canvas{display:block;width:100%;height:100%;outline:none}
-.toolbar{position:absolute;top:14px;left:14px;display:flex;gap:5px;padding:5px;background:#171e29eF;border:1px solid #354154;border-radius:10px;box-shadow:0 8px 26px #0005}
+.toolbar{display:none}
 .toolbar button{min-width:34px;padding:7px 9px;font-size:12px}.toolbar .active{background:#304965;border-color:#6e9ed6}
-.hint{position:absolute;left:16px;bottom:15px;padding:8px 11px;border-radius:8px;background:#151c27d9;border:1px solid #303b4d;color:#a9b5c7;font-size:11px;pointer-events:none}
+.hint{display:none}
 .hint b{color:#e7eef9;font-weight:600}
-.viewcube{position:absolute;right:20px;top:18px;width:116px;height:116px;perspective:450px;display:grid;place-items:center;pointer-events:none}
+.viewcube{position:absolute;right:14px;top:14px;width:104px;height:104px;perspective:450px;display:grid;place-items:center;pointer-events:none}
 .cube{width:66px;height:66px;position:relative;transform-style:preserve-3d;transform:rotateX(-28deg) rotateY(35deg);transition:transform .25s;pointer-events:auto}
 .face{position:absolute;width:66px;height:66px;display:grid;place-items:center;background:#283a50;border:1px solid #8db8e7;color:#dcecff;font-size:10px;font-weight:700;cursor:pointer;backface-visibility:visible;opacity:.96}
 .face:hover{background:#45678e}.front{transform:translateZ(33px)}.back{transform:rotateY(180deg) translateZ(33px)}.right{transform:rotateY(90deg) translateZ(33px)}.left{transform:rotateY(-90deg) translateZ(33px)}.top{transform:rotateX(90deg) translateZ(33px)}.bottom{transform:rotateX(-90deg) translateZ(33px)}
 .axis-legend{position:absolute;right:20px;bottom:18px;color:#7f8ca0;font-size:10px;display:flex;gap:10px;background:#151c27c9;padding:7px 9px;border:1px solid #303b4d;border-radius:7px}
 .axis-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}.x{background:#ed6b67}.y{background:#75c98b}.z{background:#6ba9fa}
-footer{display:flex;align-items:center;padding:0 13px;background:#151b25;border-top:1px solid var(--line);color:#7f8ca0;font-size:10px;gap:16px}
+footer{display:none}
 footer span:last-child{margin-left:auto}
 #loading{position:absolute;inset:0;display:grid;place-items:center;background:#10141c;color:#b9c9dd;z-index:5;font-size:13px}
-@media(max-width:640px){header{height:48px;padding:0 10px;gap:9px}.header-sub{display:none}.brand{font-size:10px}.header-right .state{display:none}#app{grid-template-rows:48px 1fr 26px}.toolbar{top:10px;left:8px;gap:3px}.toolbar button{padding:7px 8px;font-size:11px}.viewcube{right:7px;top:70px;transform:scale(.82);transform-origin:top right}.hint{left:8px;bottom:10px;max-width:calc(100% - 16px);font-size:10px}.axis-legend{right:8px;bottom:10px;transform:translateY(-44px)}}
+@media(max-width:640px){.viewcube{right:5px;top:5px;transform:scale(.78);transform-origin:top right}.axis-legend{right:8px;bottom:8px}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
@@ -77,9 +77,9 @@ scene.add(new THREE.HemisphereLight(0xdceaff,0x202938,2.0));
 const key=new THREE.DirectionalLight(0xffffff,2.1);key.position.set(90,140,100);scene.add(key);
 const fill=new THREE.DirectionalLight(0x719bd0,.65);fill.position.set(-100,50,-80);scene.add(fill);
 
-const grid=new THREE.GridHelper(200,100,0x53647b,0x29374a);grid.position.y=-.02;scene.add(grid);
+const grid=new THREE.GridHelper(200,100,0x43546b,0x263346);grid.position.y=-.02;scene.add(grid);
 const axes=new THREE.AxesHelper(65);scene.add(axes);
-const origin=new THREE.Mesh(new THREE.SphereGeometry(.8,20,12),new THREE.MeshBasicMaterial({color:0xe5edf8}));
+const origin=new THREE.Mesh(new THREE.SphereGeometry(.22,32,24),new THREE.MeshStandardMaterial({color:0x8ebaff,metalness:.28,roughness:.32}));
 origin.position.set(0,0,0);scene.add(origin);
 // A subtle, real 3D reference object gives depth without pretending to be a user model.
 const reference=new THREE.Mesh(new THREE.BoxGeometry(18,18,18),new THREE.MeshStandardMaterial({color:0x719ac7,metalness:.18,roughness:.48,transparent:true,opacity:.13}));
