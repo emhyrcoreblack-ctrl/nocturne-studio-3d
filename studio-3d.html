@@ -152,7 +152,7 @@ function setTool(tool){
  const labels={select:'Seleccionar',line:'Dibujar línea',rect:'Dibujar rectángulo',circle:'Dibujar círculo'};
  ['select','line','rect','circle'].forEach(t=>document.getElementById(t+'Tool').classList.toggle('tool-active',t===tool));
  document.getElementById('saveState').textContent=labels[tool];
- if(controls)controls.enabled=(tool==='select');
+ if(controls){controls.enabled=true;controls.enableRotate=(tool==='select');controls.enablePan=(tool==='select');controls.enableZoom=true;}
  if(renderer)renderer.domElement.style.cursor=tool==='select'?'grab':'crosshair';
 }
 function pointOnGround(event){
@@ -163,7 +163,7 @@ function pointOnGround(event){
  return raycaster.ray.intersectPlane(groundPlane,p)?p:null;
 }
 function beginSketch(event){
- if(activeTool==='select'||event.button!==0)return;
+ if((event.pointerType==='touch'&&!event.isPrimary)||activeTool==='select'||event.button!==0)return;
  const p=pointOnGround(event);if(!p)return;
  event.preventDefault();
  if(activeTool==='line'){if(!linePoints.length){linePoints=[p.clone()];lineObject=new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints),new THREE.LineBasicMaterial({color:0xe5efff}));scene.add(lineObject);}else linePoints.push(p.clone());updateContinuousLine(p);return;}
@@ -181,7 +181,7 @@ function moveSketch(event){
  else if(activeTool==='circle')updateMeasureAt('Diámetro: '+fmt(distance*2)+' cm','Radio: '+fmt(distance)+' cm',new THREE.Vector3(p.x,.08,p.z));
 }
 function finishSketch(event){
- if(activeTool==='line'||!drawStart)return;
+ if((event.pointerType==='touch'&&!event.isPrimary)||activeTool==='line'||!drawStart)return;
  const p=pointOnGround(event)||drawStart;
  if(previewObject){scene.remove(previewObject);previewObject.geometry.dispose();}
  const obj=makeShape(activeTool,drawStart,p,false);
