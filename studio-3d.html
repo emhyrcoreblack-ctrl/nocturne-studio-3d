@@ -160,17 +160,17 @@ function beginSketch(event){
  if(activeTool==='select'||event.button!==0)return;
  const p=pointOnGround(event);if(!p)return;
  event.preventDefault();renderer.domElement.setPointerCapture(event.pointerId);
- drawStart=p;previewObject=makeShape(activeTool,p,p,true);scene.add(previewObject);
+ drawStart=p;previewObject=makeShape(activeTool,p,p,true);if(previewObject)scene.add(previewObject);
 }
 function moveSketch(event){
  if(!drawStart||!previewObject)return;
  const p=pointOnGround(event);if(!p)return;
- scene.remove(previewObject);previewObject.geometry.dispose();previewObject=makeShape(activeTool,drawStart,p,true);scene.add(previewObject);
+ scene.remove(previewObject);previewObject.geometry.dispose();previewObject=makeShape(activeTool,drawStart,p,true);if(previewObject)scene.add(previewObject);
 }
 function finishSketch(event){
- if(!drawStart||!previewObject)return;
+ if(!drawStart)return;
  const p=pointOnGround(event)||drawStart;
- scene.remove(previewObject);previewObject.geometry.dispose();
+ if(previewObject){scene.remove(previewObject);previewObject.geometry.dispose();}
  const obj=makeShape(activeTool,drawStart,p,false);
  if(obj){scene.add(obj);drawnObjects.push(obj);document.getElementById('saveState').textContent=drawnObjects.length+' elemento(s)';}
  previewObject=null;drawStart=null;
