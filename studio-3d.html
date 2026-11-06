@@ -4,120 +4,118 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#10141c">
-<title>NOCTURNE STUDIO 3D · Espacio de trabajo</title>
+<title>NOCTURNE STUDIO 3D</title>
 <style>
-:root{color-scheme:dark;--bg:#10141c;--panel:#191f2a;--line:#303b4d;--text:#edf2fa;--muted:#8996aa;--accent:#8ebaff;--orange:#f0a45e}
-*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font:13px/1.4 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-button{font:inherit;color:inherit;border:1px solid var(--line);background:#202938;border-radius:7px;padding:8px 11px;cursor:pointer;transition:background .15s,border-color .15s}
-button:hover{background:#2b3b51;border-color:#526985}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-#app{height:100%;display:block}
-#workspace{position:fixed;inset:0;min-height:0;width:100%;height:100%;overflow:hidden}
-footer{display:none}
-header{display:none}
-.brand{font-weight:800;letter-spacing:.12em;font-size:12px;white-space:nowrap}.brand span{color:var(--accent)}
-.header-sub{color:var(--muted);font-size:11px;border-left:1px solid var(--line);padding-left:17px}
-.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}.state{font-size:11px;color:#8bd8b1;display:flex;align-items:center;gap:6px}.dot{width:6px;height:6px;border-radius:50%;background:#65d39b;box-shadow:0 0 9px #65d39b}
-#workspace{position:relative;min-height:0;background:radial-gradient(ellipse at 50% 45%,#202b3a 0%,#131a25 65%,#10141c 100%)}
-#viewport{position:absolute;inset:0;touch-action:none}#viewport canvas{display:block;width:100%;height:100%;outline:none}
-.toolbar{display:none}
-.toolbar button{min-width:34px;padding:7px 9px;font-size:12px}.toolbar .active{background:#304965;border-color:#6e9ed6}
-.hint{display:none}
-.hint b{color:#e7eef9;font-weight:600}
-.viewcube{position:absolute;right:14px;top:14px;width:104px;height:104px;perspective:450px;display:grid;place-items:center;pointer-events:none}
-.cube{width:66px;height:66px;position:relative;transform-style:preserve-3d;transform:rotateX(-28deg) rotateY(35deg);transition:transform .25s;pointer-events:auto}
-.face{position:absolute;width:66px;height:66px;display:grid;place-items:center;background:#283a50;border:1px solid #8db8e7;color:#dcecff;font-size:10px;font-weight:700;cursor:pointer;backface-visibility:visible;opacity:.96}
-.face:hover{background:#45678e}.front{transform:translateZ(33px)}.back{transform:rotateY(180deg) translateZ(33px)}.right{transform:rotateY(90deg) translateZ(33px)}.left{transform:rotateY(-90deg) translateZ(33px)}.top{transform:rotateX(90deg) translateZ(33px)}.bottom{transform:rotateX(-90deg) translateZ(33px)}
-.axis-legend{position:absolute;right:20px;bottom:18px;color:#7f8ca0;font-size:10px;display:flex;gap:10px;background:#151c27c9;padding:7px 9px;border:1px solid #303b4d;border-radius:7px}
-.axis-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}.x{background:#ed6b67}.y{background:#75c98b}.z{background:#6ba9fa}
-footer{display:none}
-footer span:last-child{margin-left:auto}
-#loading{position:absolute;inset:0;display:grid;place-items:center;background:#10141c;color:#b9c9dd;z-index:5;font-size:13px}
-@media(max-width:640px){.viewcube{right:5px;top:5px;transform:scale(.78);transform-origin:top right}.axis-legend{right:8px;bottom:8px}}
+:root{color-scheme:dark;--bg:#10141c;--panel:#191f2a;--panel2:#202a38;--line:#303c4e;--text:#edf2fa;--muted:#93a0b3;--blue:#8ebaff;--green:#83d8ae}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}button,input{font:inherit}button{color:inherit;background:#202a38;border:1px solid var(--line);border-radius:9px;padding:10px 14px;cursor:pointer}button:hover{background:#2b3b50;border-color:#526a88}button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+#projectScreen{min-height:100%;background:radial-gradient(ellipse at 82% 0%,#24364e 0,transparent 38%),var(--bg)}
+.topbar{height:64px;border-bottom:1px solid #2b3545;display:flex;align-items:center;padding:0 clamp(16px,4vw,54px);gap:14px;background:#121923d9}
+.brand{font-size:13px;font-weight:850;letter-spacing:.13em;white-space:nowrap}.brand em{font-style:normal;color:var(--blue)}.topbar .spacer{flex:1}
+.primary{background:#dceaff;color:#142033;border-color:#dceaff;font-weight:750}.primary:hover{background:#fff;color:#142033}
+.page{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:54px 0 70px}.eyebrow{color:var(--blue);font-size:10px;letter-spacing:.2em;font-weight:800}.page h1{font-size:clamp(34px,6vw,54px);letter-spacing:-.055em;line-height:1.04;margin:12px 0 10px}.intro{color:var(--muted);font-size:15px;max-width:620px;margin:0}
+.sectionhead{display:flex;align-items:center;gap:14px;margin:46px 0 17px}.sectionhead h2{font-size:18px;margin:0}.sectionhead span{color:var(--muted);font-size:12px}
+.projectgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:16px}
+.projectcard{padding:0;overflow:hidden;text-align:left;background:#171f2b;border:1px solid #344155;border-radius:15px;min-height:210px;display:flex;flex-direction:column;transition:transform .16s,border-color .16s}.projectcard:hover{transform:translateY(-2px);border-color:#7097c4}
+.thumb{height:132px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#344c69,#1a2636 72%);display:grid;place-items:center}
+.thumb:before{content:"";position:absolute;width:190%;height:1px;background:#5c7696;transform:rotate(-25deg);opacity:.35;box-shadow:0 30px #5c7696,0 60px #5c7696,0 -30px #5c7696,0 -60px #5c7696}
+.thumb:after{content:"";position:absolute;width:1px;height:190%;background:#5c7696;transform:rotate(25deg);opacity:.28;box-shadow:30px 0 #5c7696,60px 0 #5c7696,-30px 0 #5c7696,-60px 0 #5c7696}
+.thumb svg{position:relative;z-index:1;width:105px;height:85px;filter:drop-shadow(0 12px 16px #0008)}
+.cardinfo{padding:14px 15px;display:flex;align-items:center;gap:10px}.cardinfo strong{display:block;font-size:13px}.cardinfo small{color:var(--muted);font-size:11px}.cardarrow{margin-left:auto;color:var(--blue);font-size:19px}
+.newcard{min-height:210px;border:1px dashed #52647d;background:#141c27;display:grid;place-items:center;text-align:center;padding:22px;gap:9px}.plus{width:42px;height:42px;border:1px solid #57749a;border-radius:12px;display:grid;place-items:center;color:var(--blue);font-size:26px}.newcard strong{font-size:14px}.newcard small{color:var(--muted);max-width:190px}
+.empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:14px;padding:30px;text-align:center;color:var(--muted)}
+.modalback{position:fixed;inset:0;background:#05080dcc;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modalback.show{display:flex}.modal{width:min(420px,100%);background:#1a2330;border:1px solid #3a4a61;border-radius:17px;padding:23px;box-shadow:0 25px 90px #0009}.modal h2{margin:0 0 5px;font-size:22px}.modal p{margin:0 0 20px;color:var(--muted);font-size:13px}.field{display:grid;gap:7px;margin:15px 0}.field label{font-size:12px;color:#c4cfdf}.field input{width:100%;padding:12px;border-radius:9px;border:1px solid #3b4a60;background:#111923;color:var(--text)}.modalactions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}
+#workspace{display:none;position:fixed;inset:0;overflow:hidden;background:#131a25;touch-action:none}#viewport{position:absolute;inset:0;touch-action:none}#viewport canvas{display:block;width:100%;height:100%;outline:none}
+#backProjects{position:absolute;left:14px;top:14px;z-index:4;width:42px;height:42px;padding:0;border-radius:12px;background:#172231eF;border-color:#52647d;font-size:20px}
+.viewcube{position:absolute;right:16px;top:15px;width:106px;height:106px;perspective:450px;display:grid;place-items:center;z-index:4;pointer-events:none}.cube{width:62px;height:62px;position:relative;transform-style:preserve-3d;pointer-events:auto;transition:transform .2s}.face{position:absolute;width:62px;height:62px;padding:2px;display:grid;place-items:center;background:#314761;border:1px solid #a0c4ec;color:#e8f3ff;font-size:9px;font-weight:750;border-radius:2px;opacity:.97}.face:hover{background:#5279a4}.front{transform:translateZ(31px)}.back{transform:rotateY(180deg) translateZ(31px)}.right{transform:rotateY(90deg) translateZ(31px)}.left{transform:rotateY(-90deg) translateZ(31px)}.top{transform:rotateX(90deg) translateZ(31px)}.bottom{transform:rotateX(-90deg) translateZ(31px)}
+#sceneStatus{position:absolute;left:14px;bottom:13px;z-index:3;color:#8f9db0;background:#151e2bd9;border:1px solid #354258;border-radius:9px;padding:7px 10px;font-size:10px;pointer-events:none}
+#sceneError{display:none;position:absolute;inset:0;z-index:8;background:#111923f2;place-items:center;padding:25px;text-align:center;color:#dce7f5}#sceneError.show{display:grid}#sceneError div{max-width:360px}#sceneError strong{display:block;font-size:18px;margin-bottom:8px}#sceneError p{color:#9eacbf;font-size:13px}
+@media(max-width:640px){.topbar{height:56px;padding:0 15px}.page{padding-top:38px}.sectionhead{margin-top:34px}.projectgrid{grid-template-columns:1fr}.projectcard{min-height:190px}.thumb{height:116px}.viewcube{right:5px;top:5px;transform:scale(.82);transform-origin:top right}#backProjects{left:9px;top:9px;width:39px;height:39px}#sceneStatus{left:9px;bottom:9px}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
-<div id="app">
-<header><div class="brand">NOCTURNE <span>STUDIO</span> 3D</div><div class="header-sub">ESPACIO DE TRABAJO · VISTA 3D</div><div class="header-right"><div class="state"><i class="dot"></i> MOTOR 3D ACTIVO</div><button id="homeBtn" title="Restablecer vista">Restablecer vista</button></div></header>
+<section id="projectScreen">
+<header class="topbar"><div class="brand">NOCTURNE <em>STUDIO</em> 3D</div><div class="spacer"></div><button class="primary" id="newProjectTop">＋ Nuevo proyecto</button></header>
+<div class="page">
+<div class="eyebrow">ESPACIO DE DISEÑO</div>
+<h1>¿Qué vamos a crear<br>hoy?</h1>
+<p class="intro">Tus proyectos, en un solo lugar. Crea un espacio nuevo o continúa donde lo dejaste.</p>
+<div class="sectionhead"><h2>Mis proyectos</h2><span id="projectCount">0 proyectos</span></div>
+<div class="projectgrid" id="projectGrid">
+<button class="projectcard newcard" id="newProjectCard"><span class="plus">＋</span><strong>Crear nuevo proyecto</strong><small>Comienza con un espacio 3D vacío y construye desde cero.</small></button>
+</div>
+</div>
+</section>
+<div class="modalback" id="newProjectModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<form class="modal" id="projectForm">
+<h2 id="modalTitle">Nuevo proyecto</h2><p>Prepara tu espacio de trabajo 3D.</p>
+<div class="field"><label for="projectName">Nombre del proyecto</label><input id="projectName" maxlength="60" placeholder="Ej. Diseño de mobiliario" required></div>
+<div class="modalactions"><button type="button" id="cancelCreate">Cancelar</button><button class="primary" type="submit">Crear proyecto</button></div>
+</form>
+</div>
 <main id="workspace">
-<div id="viewport" aria-label="Visor tridimensional interactivo"></div>
-<div id="loading">Inicializando espacio tridimensional…</div>
-<nav class="toolbar" aria-label="Perspectivas">
-<button data-view="front" title="Vista frontal">Frente</button><button data-view="back" title="Vista posterior">Atrás</button><button data-view="top" title="Vista superior">Arriba</button><button data-view="bottom" title="Vista inferior">Abajo</button><button data-view="left" title="Vista izquierda">Izq.</button><button data-view="right" title="Vista derecha">Der.</button><button data-view="iso" class="active" title="Vista isométrica">ISO</button>
-</nav>
-<div class="viewcube" aria-label="Cubo de orientación">
-<div class="cube" id="orientationCube">
+<div id="viewport" aria-label="Espacio de trabajo tridimensional"></div>
+<button id="backProjects" title="Volver a proyectos" aria-label="Volver a proyectos">←</button>
+<div class="viewcube"><div class="cube" id="orientationCube">
 <button class="face front" data-view="front">FRENTE</button><button class="face back" data-view="back">ATRÁS</button><button class="face right" data-view="right">DERECHA</button><button class="face left" data-view="left">IZQUIERDA</button><button class="face top" data-view="top">ARRIBA</button><button class="face bottom" data-view="bottom">ABAJO</button>
 </div></div>
-<div class="hint"><b>Ratón:</b> orbitar · rueda: acercar/alejar · botón derecho: desplazar <span> · </span><b>Táctil:</b> un dedo orbita · dos dedos zoom/paneo</div>
-<div class="axis-legend"><span><i class="x"></i>X</span><span><i class="y"></i>Y</span><span><i class="z"></i>Z</span></div>
+<div id="sceneStatus">ESCENA VACÍA · <span id="activeProjectName">PROYECTO</span></div>
+<div id="sceneError"><div><strong>No se pudo iniciar el motor 3D</strong><p id="sceneErrorText">Comprueba tu conexión a Internet y vuelve a intentarlo.</p><button id="retry3D" class="primary">Reintentar</button></div></div>
 </main>
-<footer><span>ESCENA VACÍA · UNIDADES DE REFERENCIA</span><span>THREE.JS / WEBGL</span><span id="fps">ESPERANDO ESCENA</span></footer>
-</div>
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-const host=document.getElementById('viewport');
-const loading=document.getElementById('loading');
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x131a25);
-const camera=new THREE.PerspectiveCamera(42,1,.1,2000);
-camera.position.set(105,82,105);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.15;
-host.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true;controls.dampingFactor=.075;controls.rotateSpeed=.72;
-controls.zoomSpeed=1;controls.panSpeed=.8;controls.minDistance=5;controls.maxDistance=650;
-controls.target.set(0,0,0);controls.update();
-
-scene.add(new THREE.HemisphereLight(0xdceaff,0x202938,2.0));
-const key=new THREE.DirectionalLight(0xffffff,2.1);key.position.set(90,140,100);scene.add(key);
-const fill=new THREE.DirectionalLight(0x719bd0,.65);fill.position.set(-100,50,-80);scene.add(fill);
-
-const grid=new THREE.GridHelper(200,100,0x43546b,0x263346);grid.position.y=-.02;scene.add(grid);
-const axes=new THREE.AxesHelper(65);scene.add(axes);
-const origin=new THREE.Mesh(new THREE.SphereGeometry(.22,32,24),new THREE.MeshStandardMaterial({color:0x8ebaff,metalness:.28,roughness:.32}));
-origin.position.set(0,0,0);scene.add(origin);
-// A subtle, real 3D reference object gives depth without pretending to be a user model.
-const reference=new THREE.Mesh(new THREE.BoxGeometry(18,18,18),new THREE.MeshStandardMaterial({color:0x719ac7,metalness:.18,roughness:.48,transparent:true,opacity:.13}));
-reference.position.set(0,9,0);reference.visible=false;scene.add(reference);
-
-const presets={
- iso:new THREE.Vector3(105,82,105),front:new THREE.Vector3(0,0,150),back:new THREE.Vector3(0,0,-150),
- top:new THREE.Vector3(0,150,.001),bottom:new THREE.Vector3(0,-150,.001),left:new THREE.Vector3(-150,0,0),right:new THREE.Vector3(150,0,0)
-};
-let cameraTween=null;
-function setView(name){
- const p=presets[name];if(!p)return;
- // Avoid a camera-up vector parallel to the viewing direction in top/bottom views.
- camera.up=(name==='top'||name==='bottom')?new THREE.Vector3(0,0,-1):new THREE.Vector3(0,1,0);
- camera.updateProjectionMatrix();
- const distance=camera.position.distanceTo(controls.target);
- const dir=p.clone().normalize();
- cameraTween={from:camera.position.clone(),to:controls.target.clone().addScaledVector(dir,Math.max(85,Math.min(230,distance))),start:performance.now(),duration:420};
- document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
-}
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
-document.getElementById('homeBtn').addEventListener('click',()=>{controls.target.set(0,0,0);setView('iso')});
-
-const cube=document.getElementById('orientationCube');
-function updateCube(){const d=camera.position.clone().sub(controls.target).normalize();const yaw=Math.atan2(d.x,d.z)*180/Math.PI;const pitch=Math.asin(d.y)*180/Math.PI;cube.style.transform='rotateX('+(-pitch)+'deg) rotateY('+yaw+'deg)';}
-controls.addEventListener('change',updateCube);
-let resizeObserver=new ResizeObserver(()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);});
-resizeObserver.observe(host);
-let frames=0,lastFps=performance.now();
-function animate(now){
- requestAnimationFrame(animate);
- if(cameraTween){const t=Math.min(1,(now-cameraTween.start)/cameraTween.duration);const s=t*t*(3-2*t);camera.position.lerpVectors(cameraTween.from,cameraTween.to,s);if(t>=1)cameraTween=null;}
- controls.update();renderer.render(scene,camera);
- frames++;if(now-lastFps>1000){document.getElementById('fps').textContent=frames+' FPS aprox.';frames=0;lastFps=now;}
-}
-updateCube();loading.remove();requestAnimationFrame(animate);
-window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;const map={1:'front',2:'back',3:'right',4:'left',5:'top',6:'bottom',0:'iso'};if(map[e.key])setView(map[e.key]);});
+<script>
+(function(){
+ const KEY='nocturne.projects.v1';
+ const screen=document.getElementById('projectScreen'),workspace=document.getElementById('workspace'),grid=document.getElementById('projectGrid'),modal=document.getElementById('newProjectModal'),input=document.getElementById('projectName');
+ let projects=[];
+ try{projects=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(projects))projects=[];}catch(e){projects=[];}
+ if(!projects.length){projects=[{id:'demo-3d',name:'Proyecto de demostración',updated:new Date().toISOString(),demo:true}];save();}
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(projects));}catch(e){}}
+ function safeDate(v){try{return new Intl.DateTimeFormat('es',{day:'numeric',month:'short',year:'numeric'}).format(new Date(v));}catch(e){return 'Reciente';}}
+ function card(p){const b=document.createElement('button');b.className='projectcard';b.type='button';b.innerHTML='<div class="thumb"><svg viewBox="0 0 120 90" aria-hidden="true"><path d="M60 12 99 32 60 53 21 32Z" fill="#9fc8f3" stroke="#d6e9ff" stroke-width="1.5"/><path d="M21 32v37l39 18V53Z" fill="#42678e" stroke="#9fc8f3" stroke-width="1.5"/><path d="M99 32v37L60 87V53Z" fill="#2d4c70" stroke="#9fc8f3" stroke-width="1.5"/></svg></div><div class="cardinfo"><div><strong></strong><small></small></div><span class="cardarrow">›</span></div>';b.querySelector('strong').textContent=p.name;b.querySelector('small').textContent='Modificado · '+safeDate(p.updated);b.addEventListener('click',()=>enter(p.id));return b;}
+ function render(){grid.replaceChildren();projects.slice().sort((a,b)=>new Date(b.updated)-new Date(a.updated)).forEach(p=>grid.appendChild(card(p)));const n=document.createElement('button');n.className='projectcard newcard';n.type='button';n.innerHTML='<span class="plus">＋</span><strong>Crear nuevo proyecto</strong><small>Comienza con un espacio 3D vacío y construye desde cero.</small>';n.addEventListener('click',openModal);grid.appendChild(n);document.getElementById('projectCount').textContent=projects.length+' '+(projects.length===1?'proyecto':'proyectos');}
+ function openModal(){modal.classList.add('show');input.value='';setTimeout(()=>input.focus(),40);}
+ function closeModal(){modal.classList.remove('show');}
+ function enter(id){const p=projects.find(x=>x.id===id);if(!p)return;currentId=id;p.updated=new Date().toISOString();save();render();document.getElementById('activeProjectName').textContent=p.name.toUpperCase();screen.style.display='none';workspace.style.display='block';if(window.startViewport)window.startViewport();else window.dispatchEvent(new Event('nocturne-start-3d'));}
+ let currentId=null;
+ document.getElementById('newProjectTop').addEventListener('click',openModal);document.getElementById('newProjectCard').addEventListener('click',openModal);document.getElementById('cancelCreate').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+ document.getElementById('projectForm').addEventListener('submit',e=>{e.preventDefault();const name=input.value.trim();if(!name)return;const p={id:'p-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),name,updated:new Date().toISOString()};projects.push(p);save();closeModal();render();enter(p.id);});
+ document.getElementById('backProjects').addEventListener('click',()=>{workspace.style.display='none';screen.style.display='block';if(window.stopViewport)window.stopViewport();});
+ document.getElementById('retry3D').addEventListener('click',()=>{document.getElementById('sceneError').classList.remove('show');if(window.startViewport)window.startViewport();});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal();});
+ render();
+})();
 </script>
-</body></html>
+<script type="module">
+let renderer,scene,camera,controls,observer,raf=0,started=false,THREE;
+const host=document.getElementById('viewport'),errorBox=document.getElementById('sceneError'),errorText=document.getElementById('sceneErrorText'),cube=document.getElementById('orientationCube');
+async function startViewport(){
+ if(started){resize();return;}
+ try{
+  THREE=await import('three');
+  const mod=await import('three/addons/controls/OrbitControls.js');
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x131a25);
+  camera=new THREE.PerspectiveCamera(42,1,.1,2000);camera.position.set(105,82,105);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
+  controls=new mod.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.075;controls.rotateSpeed=.72;controls.zoomSpeed=1;controls.panSpeed=.8;controls.minDistance=5;controls.maxDistance=650;controls.target.set(0,0,0);controls.update();
+  scene.add(new THREE.HemisphereLight(0xdceaff,0x202938,2));
+  const key=new THREE.DirectionalLight(0xffffff,2.1);key.position.set(90,140,100);scene.add(key);
+  const fill=new THREE.DirectionalLight(0x719bd0,.65);fill.position.set(-100,50,-80);scene.add(fill);
+  const grid=new THREE.GridHelper(200,100,0x43546b,0x263346);grid.position.y=-.02;scene.add(grid);
+  scene.add(new THREE.AxesHelper(65));
+  const origin=new THREE.Mesh(new THREE.SphereGeometry(.22,32,24),new THREE.MeshStandardMaterial({color:0x8ebaff,metalness:.28,roughness:.32}));scene.add(origin);
+  controls.addEventListener('change',updateCube);
+  observer=new ResizeObserver(resize);observer.observe(host);resize();started=true;errorBox.classList.remove('show');
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  animate();
+ }catch(err){errorText.textContent='No se pudo cargar Three.js o WebGL. Comprueba Internet y que tu navegador permita aceleración gráfica. Detalle: '+(err&&err.message?err.message:'error desconocido');errorBox.classList.add('show');console.error(err);}
+}
+function resize(){if(!renderer||!host.clientWidth||!host.clientHeight)return;camera.aspect=host.clientWidth/host.clientHeight;camera.updateProjectionMatrix();renderer.setSize(host.clientWidth,host.clientHeight,false);}
+function updateCube(){if(!camera||!controls)return;const d=camera.position.clone().sub(controls.target).normalize();cube.style.transform='rotateX('+(-Math.asin(d.y)*180/Math.PI)+'deg) rotateY('+(Math.atan2(d.x,d.z)*180/Math.PI)+'deg)';}
+function setView(name){const p={front:[0,0,150],back:[0,0,-150],top:[0,150,.001],bottom:[0,-150,.001],left:[-150,0,0],right:[150,0,0]}[name];if(!p)return;camera.up=(name==='top'||name==='bottom')?new THREE.Vector3(0,0,-1):new THREE.Vector3(0,1,0);const target=controls.target.clone();camera.position.copy(target.add(new THREE.Vector3(...p)));controls.update();}
+function animate(){cancelAnimationFrame(raf);const tick=()=>{raf=requestAnimationFrame(tick);if(controls)controls.update();if(renderer&&scene&&camera)renderer.render(scene,camera);};tick();}
+function stopViewport(){if(raf)cancelAnimationFrame(raf);raf=0;}
+window.startViewport=startViewport;window.stopViewport=stopViewport;window.addEventListener('nocturne-start-3d',startViewport);
+</script>
+</body>
+</html>
