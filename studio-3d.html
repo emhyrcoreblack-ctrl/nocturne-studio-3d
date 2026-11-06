@@ -92,6 +92,9 @@ const presets={
 let cameraTween=null;
 function setView(name){
  const p=presets[name];if(!p)return;
+ // Avoid a camera-up vector parallel to the viewing direction in top/bottom views.
+ camera.up=(name==='top'||name==='bottom')?new THREE.Vector3(0,0,-1):new THREE.Vector3(0,1,0);
+ camera.updateProjectionMatrix();
  const distance=camera.position.distanceTo(controls.target);
  const dir=p.clone().normalize();
  cameraTween={from:camera.position.clone(),to:controls.target.clone().addScaledVector(dir,Math.max(85,Math.min(230,distance))),start:performance.now(),duration:420};
