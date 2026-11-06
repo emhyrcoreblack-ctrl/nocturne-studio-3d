@@ -145,7 +145,7 @@ async function startViewport(){
   document.getElementById('axesButton').addEventListener('click',()=>{axesObject.visible=!axesObject.visible;document.getElementById('axesButton').classList.toggle('tool-active',axesObject.visible);});
   document.getElementById('fitButton').addEventListener('click',()=>{camera.position.copy(defaultCameraPosition);controls.target.set(0,0,0);controls.update();});
   animate();
- }catch(err){errorText.textContent='No se pudo cargar Three.js o WebGL. Comprueba Internet y que tu navegador permita aceleración gráfica. Detalle: '+(err&&err.message?err.message:'error desconocido');errorBox.classList.add('show');console.error(err);}
+ }catch(err){if(raf){cancelAnimationFrame(raf);raf=0;}if(observer){observer.disconnect();observer=null;}if(controls){controls.dispose();controls=null;}if(renderer){const failedCanvas=renderer.domElement;if(failedCanvas&&failedCanvas.parentNode)failedCanvas.parentNode.removeChild(failedCanvas);renderer.dispose();renderer=null;}scene=null;camera=null;gridObject=null;axesObject=null;cursorMarker=null;lineObject=null;previewObject=null;drawnObjects=[];linePoints=[];drawStart=null;started=false;errorText.textContent='No se pudo cargar Three.js o WebGL. Comprueba Internet y que tu navegador permita aceleración gráfica. Detalle: '+(err&&err.message?err.message:'error desconocido');errorBox.classList.add('show');console.error(err);}
 }
 function setTool(tool){
  if(activeTool==='line'&&tool!=='line')finishContinuousLine();
