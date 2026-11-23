@@ -184,7 +184,7 @@ class CadRenderer : GLSurfaceView.Renderer {
                 }
             } else {
                 val text=bytes.toString(Charsets.UTF_8)
-                val regex=Regex("""vertex\\s+([-+0-9.eE]+)\\s+([-+0-9.eE]+)\\s+([-+0-9.eE]+)""")
+                val regex=Regex("""vertex\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)""")
                 for (m in regex.findAll(text)) addVertex(m.groupValues[1].toFloat(),m.groupValues[2].toFloat(),m.groupValues[3].toFloat())
             }
             if (values.isEmpty() || values.size % 21 != 0) return false
